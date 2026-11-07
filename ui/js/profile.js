@@ -3,6 +3,7 @@ import { initializeAuth } from "./firebase-config.js";
 import { loadSession, showError } from "./common.js";
 import { API_BASE_URL } from "./config.js";
 import { mountSchoolToolbar } from "./school-toolbar.js";
+import { renderTextbookRows } from "./textbook-list.js";
 
 const updateToolbar = mountSchoolToolbar("プロフィール");
 const el = id => document.getElementById(id);
@@ -23,6 +24,8 @@ try {
   };
   onAuthStateChanged(auth, async user => {
     el("content").hidden = true;
+    el("profileTextbooks").hidden = true;
+    el("profileTextbookList").replaceChildren();
     if (!user) { window.location.replace("../index.html"); return; }
     let revision = 0;
     async function request(path, settings = {}) {
@@ -30,6 +33,28 @@ try {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw Object.assign(new Error(typeof data.detail === "string" ? data.detail : "プロフィールを取得・保存できませんでした。"), { status: response.status });
       return data;
+    }
+    async function loadTextbooks(profile) {
+      if (!profile.school_code || auth.currentUser !== user) return;
+      el("profileTextbooks").hidden = false;
+      el("profileTextbooksSchool").textContent = [profile.prefecture, profile.city, profile.school_name].filter(Boolean).join(" ／ ");
+      el("profileTextbookList").replaceChildren();
+      el("profileTextbooksStatus").textContent = "採択教科書を読み込んでいます…";
+      try {
+        const data = await request("/teaching-subjects");
+        if (auth.currentUser !== user) return;
+        if (data.profile.school_code !== profile.school_code) {
+          el("profileTextbooksStatus").textContent = "所属校が変更されています。ページを再読み込みしてください。";
+          return;
+        }
+        renderTextbookRows(el("profileTextbookList"), data.textbooks);
+        el("profileTextbooksStatus").textContent = data.covered
+          ? `${data.textbooks.length}件の採択教科書を表示しています。`
+          : "この学校の公開採択情報はまだ連携されていません。";
+      } catch (error) {
+        if (auth.currentUser !== user) return;
+        el("profileTextbooksStatus").textContent = "学校は登録済みですが、採択教科書を取得できませんでした。再読み込みしてお試しください。";
+      }
     }
     function resetSchool() { options(school, [], "先に市区町村を選択してください"); save.disabled = true; }
     async function loadCities(selected = "") {
@@ -72,14 +97,17 @@ try {
         prefecture.disabled = city.disabled = school.disabled = true;
         try {
           const result = await request("/profile", { method: "PUT", body: JSON.stringify({ school_code: school.value }) });
+          if (auth.currentUser !== user) return;
           updateToolbar(result.profile);
           el("error").textContent = ""; el("status").textContent = "プロフィールを登録しました。";
+          await loadTextbooks(result.profile);
         } catch (error) { showError(error); }
         finally { prefecture.disabled = city.disabled = school.disabled = false; save.disabled = !school.value; }
       };
       if (auth.currentUser !== user) return;
       el("status").textContent = profile.school_code && !school.value ? "以前登録した学校が現在の一覧にありません。学校を選択し直してください。" : "";
       el("content").hidden = false;
+      await loadTextbooks(profile);
     } catch (error) {
       el("status").textContent = "プロフィールを取得できませんでした。";
       showError(error);

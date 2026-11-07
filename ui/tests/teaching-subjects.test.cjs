@@ -30,6 +30,8 @@ async function screen(data, options = {}) {
     }
   };
   vm.createContext(context);
+  const renderer = fs.readFileSync(path.join(__dirname, '../js/textbook-list.js'), 'utf8').replace('export function', 'function');
+  vm.runInContext(renderer, context);
   const source = fs.readFileSync(path.join(__dirname, '../js/teaching-subjects.js'), 'utf8').replace(/^import .*;$/gm, '');
   await vm.runInContext(`(async () => {${source}})()`, context);
   await context.observe(options.anonymous ? null : user);
@@ -50,20 +52,35 @@ test('uses saved school and filters shared textbooks by grade and subject', asyn
   assert.equal(context.profile, data.profile);
   assert.equal(context.request.url, '/api/teaching-subjects');
   assert.equal(context.request.settings.headers.Authorization, 'Bearer token');
-  assert.equal(elements.subjectList.children.length, 3);
+  assert.equal(elements.subjectList.children.length, 0);
+  assert.equal(elements.textbookResult.hidden, true);
   elements.grade.value = '4';
+  elements.grade.onchange();
+  assert.equal(elements.subjectList.children.length, 0);
+  assert.equal(elements.textbookResult.hidden, true);
   elements.subject.value = '保健';
   elements.subject.onchange();
   assert.equal(elements.subjectList.children.length, 1);
+  assert.equal(elements.textbookResult.hidden, false);
+  assert.equal(elements.subjectList.children[0].children[0].textContent, '4年');
   assert.equal(elements.subjectList.children[0].children[2].textContent, '出版社A');
   elements.subject.value = '算数';
   elements.subject.onchange();
   assert.equal(elements.subjectList.children.length, 0);
   assert.match(elements.listStatus.textContent, /採択情報はありません/);
+  elements.subject.value = '保健';
+  elements.subject.onchange();
+  elements.grade.value = '';
+  elements.grade.onchange();
+  assert.equal(elements.subjectList.children.length, 0);
+  assert.equal(elements.textbookResult.hidden, true);
 });
 
 test('missing adoption information is distinguished from no matching subject', async () => {
   const { elements } = await screen({ ...data, covered: false, textbooks: [] });
+  elements.grade.value = '1';
+  elements.subject.value = '国語';
+  elements.subject.onchange();
   assert.match(elements.listStatus.textContent, /まだ連携されていません/);
 });
 

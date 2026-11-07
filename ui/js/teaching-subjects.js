@@ -3,6 +3,7 @@ import { initializeAuth } from "./firebase-config.js";
 import { loadSession, showError } from "./common.js";
 import { API_BASE_URL } from "./config.js";
 import { mountSchoolToolbar } from "./school-toolbar.js";
+import { renderTextbookRows } from "./textbook-list.js";
 
 const el = id => document.getElementById(id);
 const updateToolbar = mountSchoolToolbar("担当科目");
@@ -13,31 +14,15 @@ for (const subject of subjects) el("subject").add(new Option(subject, subject));
 function render(data) {
   const grade = Number(el("grade").value);
   const subject = el("subject").value;
-  const rows = data.textbooks.filter(book => (!grade || book.grades.includes(grade)) && (!subject || book.subject === subject));
-  el("subjectList").replaceChildren();
-  for (const book of rows) {
-    const row = document.createElement("tr");
-    for (const text of [grade ? `${grade}年` : `${book.grades.join("・")}年`, book.subject, [book.title, book.publisher].filter(Boolean).join(" ／ "), `${book.school_year}年度`]) {
-      const cell = document.createElement("td");
-      cell.textContent = text;
-      row.append(cell);
-    }
-    const source = document.createElement("td");
-    const url = new URL(book.source_url);
-    if (url.protocol === "https:") {
-      const link = document.createElement("a");
-      link.href = url.href;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = "採択情報";
-      source.append(link);
-    }
-    row.append(source);
-    el("subjectList").append(row);
-  }
+  const selected = Boolean(grade && subject && data.profile.school_code);
+  const rows = selected ? data.textbooks.filter(book => book.grades.includes(grade) && book.subject === subject) : [];
+  renderTextbookRows(el("subjectList"), rows, grade);
+  el("textbookResult").hidden = !selected || !rows.length;
   el("profileNotice").hidden = Boolean(data.profile.school_code);
   el("grade").disabled = el("subject").disabled = !data.profile.school_code;
-  el("listStatus").textContent = !data.profile.school_code ? "" : !data.covered
+  el("listStatus").textContent = !data.profile.school_code ? "" : !selected
+    ? "学年と科目を選択すると、この学校で採択している教科書を表示します。"
+    : !data.covered
     ? "この学校の公開採択情報はまだ連携されていません。"
     : rows.length ? `${rows.length}件の採択教科書を表示しています。` : "選択した学年・科目の採択情報はありません。";
 }
