@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>プロフィール | TeacherAssist</title>
   <link rel="stylesheet" href="../css/theme.css">
-  <script type="module" src="../js/home.js"></script>
+  <script type="module" src="../js/profile.js"></script>
 </head>
 <body>
 <main class="management-page">
@@ -17,6 +17,15 @@
       <div><dt>氏名</dt><dd id="userName"></dd></div>
       <div><dt>メールアドレス</dt><dd id="userEmail"></dd></div>
     </dl>
+    <form id="profileForm" class="page-footer">
+      <div class="form-grid">
+        <div><label for="prefecture">都道府県</label><select id="prefecture" required disabled><option value="">都道府県を選択してください</option></select></div>
+        <div><label for="city">市区町村</label><select id="city" required disabled><option value="">先に都道府県を選択してください</option></select></div>
+        <div><label for="school">学校（公立小学校）</label><select id="school" required disabled><option value="">先に市区町村を選択してください</option></select></div>
+      </div>
+      <div class="page-actions"><button id="saveProfileButton" class="btn btn-primary" type="submit" disabled>登録</button></div>
+      <p class="school-source">学校一覧：<a href="https://www.mext.go.jp/b_menu/toukei/mext_01087.html" target="_blank" rel="noopener noreferrer">文部科学省 学校コード一覧</a>（令和8年5月1日時点・暫定版）</p>
+    </form>
   </section>
   <div class="page-footer"><button id="logoutButton" class="btn" type="button">ログアウト</button></div>
   <p id="error" class="error" role="alert"></p>

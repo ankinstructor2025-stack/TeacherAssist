@@ -127,3 +127,8 @@ body.login-page {
 .profile-details { display: grid; gap: 24px; margin: 0; }
 .profile-details dt { color: #a9b6d4; font-size: 14px; margin-bottom: 8px; }
 .profile-details dd { margin: 0; overflow-wrap: anywhere; }
+
+select { display: block; width: 100%; min-width: 0; border: 1px solid var(--input-border); border-radius: 10px; padding: 10px 12px; font: inherit; background: #fff; color: #111827; color-scheme: light; }
+select:focus { outline: 2px solid #3b82f6; outline-offset: 2px; }
+select:disabled { opacity: .6; }
+.school-source { color: #a9b6d4; font-size: 12px; }

@@ -1,5 +1,7 @@
 import os
 import hashlib
+import json
+from functools import lru_cache
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
@@ -109,14 +111,16 @@ def save_user(transaction, collection, data, user_id=None):
     # メールごとの一意な文書IDで、同時登録時も重複を防ぐ。
     target = collection.document(email_key(data["email"]))
     old = collection.document(user_id) if user_id else None
-    if old and not old.get(transaction=transaction).exists:
+    previous = old.get(transaction=transaction) if old else None
+    if previous is not None and not previous.exists:
         raise HTTPException(404, "ユーザーが見つかりません。")
     existing = target.get(transaction=transaction)
     if existing.exists and (not old or old.id != target.id):
         raise HTTPException(409, "このメールアドレスは登録済みです。")
     if old and old.id != target.id:
         transaction.delete(old)
-    transaction.set(target, data)
+    stored = {**(previous.to_dict() if previous is not None else {}), **data}
+    transaction.set(target, stored)
     return {"id": target.id, **data}
 
 
@@ -142,6 +146,60 @@ def delete_user(user_id: str, response: Response, user: Annotated[dict, Depends(
         raise HTTPException(404, "ユーザーが見つかりません。")
     reference.delete()
     return {"id": user_id, "status": "deleted"}
+
+
+@lru_cache(maxsize=1)
+def school_catalog():
+    path = Path(__file__).parent / "data" / "public_elementary_schools.json"
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+@app.get("/api/schools")
+def schools(user: Annotated[dict, Depends(current_user)], prefecture: str = "", city: str = ""):
+    records = school_catalog()
+    if not prefecture:
+        return {"prefectures": list(dict.fromkeys(record["prefecture"] for record in records))}
+    records = [record for record in records if record["prefecture"] == prefecture]
+    if not city:
+        return {"cities": sorted({record["city"] for record in records})}
+    return {"schools": [record for record in records if record["city"] == city]}
+
+
+def profile_document(user):
+    records = list(user_collection().where(filter=FieldFilter("email", "==", normalize_email(user["email"]))).limit(1).stream())
+    if not records:
+        raise HTTPException(403, "利用登録されていません。管理者にお問い合わせください。")
+    return records[0]
+
+
+class ProfileRequest(BaseModel):
+    school_code: str = Field(min_length=1, max_length=20)
+
+
+@app.get("/api/profile")
+def get_profile(response: Response, user: Annotated[dict, Depends(current_user)]):
+    response.headers["Cache-Control"] = "no-store"
+    return {"profile": profile_document(user).to_dict().get("profile", {})}
+
+
+@firestore.transactional
+def store_profile(transaction, reference, email, profile):
+    record = reference.get(transaction=transaction)
+    if not record.exists or normalize_email(record.to_dict().get("email", "")) != normalize_email(email):
+        raise HTTPException(403, "利用登録が変更されました。ログインし直してください。")
+    transaction.update(reference, {"profile": profile})
+
+
+@app.put("/api/profile")
+def update_profile(body: ProfileRequest, response: Response, user: Annotated[dict, Depends(current_user)]):
+    response.headers["Cache-Control"] = "no-store"
+    school = next((record for record in school_catalog() if record["code"] == body.school_code), None)
+    if school is None:
+        raise HTTPException(422, "一覧から公立小学校を選択してください。")
+    profile = {"prefecture": school["prefecture"], "city": school["city"], "school_code": school["code"], "school_name": school["name"]}
+    record = profile_document(user)
+    store_profile(database().transaction(), record.reference, user["email"], profile)
+    return {"profile": profile}
 
 
 @app.post("/api/session")
