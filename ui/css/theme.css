@@ -63,3 +63,63 @@ input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(5
   #userForm { padding: 16px; }
   .user-table { min-width: 560px; }
 }
+
+/* qaplain's login page has its own layout and palette, separate from its menu. */
+body.login-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+  color: #e8eefc;
+  background:
+    radial-gradient(900px 600px at 70% 20%,rgba(43,108,255,.18),transparent 55%),
+    radial-gradient(900px 600px at 20% 80%,rgba(22,163,74,.10),transparent 55%),
+    linear-gradient(180deg,#070b14,#0b1220);
+}
+.login-wrap { width: min(520px,100%); }
+.login-brand {
+  margin: 0 0 20px;
+  color: #e8eefc;
+  font-size: 20px;
+  letter-spacing: .06em;
+  text-align: center;
+  font-weight: 700;
+}
+.login-page .login-card {
+  background: linear-gradient(180deg,#0f1b33,#0c162c);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+  padding: 22px;
+}
+.login-card h1 { margin: 0 0 18px; font-size: 18px; font-weight: 700; color: #e8eefc; }
+.login-card .btn {
+  width: 100%;
+  display: flex;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: linear-gradient(180deg,rgba(43,108,255,.92),rgba(43,108,255,.76));
+  color: white;
+  font: 700 13.3333px Arial,sans-serif;
+  transition: transform .05s ease,filter .2s ease,background .2s ease;
+  user-select: none;
+}
+.login-card .btn:hover { filter: brightness(1.05); }
+.login-card .btn:active { transform: translateY(1px); }
+.login-card .btn:disabled { opacity: .55; }
+.login-card .error {
+  margin: 12px 0 0;
+  color: #ffd1d1;
+  background: rgba(255,0,0,.10);
+  border: 1px solid rgba(255,255,255,.10);
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.login-card .error:empty { display: none; }
