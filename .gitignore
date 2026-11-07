@@ -4,3 +4,5 @@ __pycache__/
 .env
 *service-account*.json
 ui/js/config.local.js
+.firebase/
+firebase-debug.log*

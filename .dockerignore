@@ -1,0 +1,10 @@
+.git
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
+**/*service-account*.json
+ui/js/config.local.js
+.firebase
+**/node_modules

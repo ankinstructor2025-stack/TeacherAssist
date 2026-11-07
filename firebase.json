@@ -1,0 +1,21 @@
+{
+  "hosting": {
+    "public": "ui",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "tests/**",
+      "**/*.test.cjs"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "run": {
+          "serviceId": "teacherassist",
+          "region": "asia-northeast1"
+        }
+      }
+    ]
+  }
+}

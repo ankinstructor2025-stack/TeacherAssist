@@ -19,3 +19,21 @@
 4. ログアウト後のホーム直接アクセス・戻る操作でユーザー情報が表示されないこと。
 5. ポップアップ取消・API停止時にエラー表示と再試行が可能なこと。
 6. PC幅・375px幅で表示とキーボード操作を確認。
+
+## 2026-11-07 Firebase Web設定の反映
+
+- 専用プロジェクト `teacherassist-514007` の公開Web設定を反映。APIの環境変数例も同じIDに更新。
+- 本番はFirebase Hosting（UI）とCloud Run（API）を使う方針を構成資料に記録。配信設定は未追加。
+- 設定モジュールの読込・必須値・プロジェクトID・authDomain・APIパスの確認成功。
+- UI 6テスト、API 7テスト成功、各終了コード0。
+- 実Googleログイン、Firebase ConsoleでのGoogle有効化、Hosting/Cloud Runのデプロイ・接続は未検証。
+
+## 2026-11-07 Cloud Run・Hosting配信設定
+
+- 管理README・構成・ログイン仕様・検証記録を確認してから変更。
+- ルートDockerfile（Python 3.11、Uvicorn、0.0.0.0:$PORT）、Docker除外設定、Firebase Hosting設定を追加。
+- `ui/` を公開し `/api/**` は `teacherassist` / `asia-northeast1` に転送。UIテスト用ファイルはHosting公開対象から除外。
+- 構成JSON・配信先・公開ディレクトリ検証成功。Uvicornを専用プロジェクトIDで起動し、画面のHTTP 200、未認証APIの401を確認、終了コード0。実トークンの検証は未実施。
+- API 7テスト、UI 6テスト成功（各終了コード0）、git diff --check成功。
+- Dockerエンジン停止によりdocker info失敗（終了コード1）。Dockerビルド・コンテナ起動・Cloud Build・本番公開・実Googleログインは未検証。
+- ユーザー提示の画面でGoogleプロバイダー有効化とHostingドメイン承認を確認。
