@@ -8,23 +8,32 @@
   <script type="module" src="../js/system.js"></script>
 </head>
 <body>
-<main class="container card">
+<main class="management-page">
   <h1>ユーザー管理</h1>
-  <a href="system_menu.html">戻る</a>
+  <a class="btn" href="system_menu.html">戻る</a>
   <p id="status" role="status">確認しています…</p>
-  <section id="content" hidden>
-    <button id="addUserButton" type="button">新規登録</button>
+  <section id="content" class="card" hidden>
+    <button id="addUserButton" type="button" class="btn btn-primary">新規登録</button>
     <form id="userForm" hidden>
       <h2 id="formTitle">ユーザー登録</h2>
-      <p><label for="userName">氏名</label><input id="userName" required maxlength="100" autocomplete="name"></p>
-      <p><label for="email">メールアドレス</label><input id="email" type="email" required maxlength="254" autocomplete="email"></p>
-      <button id="saveButton" type="submit">保存</button>
-      <button id="cancelButton" type="button">キャンセル</button>
+      <div class="form-grid">
+        <div><label for="userName">氏名</label><input id="userName" type="text" required maxlength="100" autocomplete="name"></div>
+        <div><label for="email">メールアドレス</label><input id="email" type="email" required maxlength="254" autocomplete="email"></div>
+      </div>
+      <div class="page-actions">
+        <button id="saveButton" type="submit" class="btn btn-primary">保存</button>
+        <button id="cancelButton" type="button" class="btn">キャンセル</button>
+      </div>
     </form>
-    <h2>登録ユーザー</h2>
-    <div id="userList"></div>
+    <h2 class="page-footer">登録ユーザー</h2>
+    <div class="list-scroll">
+      <table class="user-table">
+        <thead><tr><th scope="col">氏名</th><th scope="col">メールアドレス</th><th scope="col">操作</th></tr></thead>
+        <tbody id="userList"></tbody>
+      </table>
+    </div>
   </section>
-  <button id="logoutButton" type="button">ログアウト</button>
+  <div class="page-footer"><button id="logoutButton" type="button" class="btn">ログアウト</button></div>
   <p id="error" class="error" role="alert"></p>
 </main>
 </body>

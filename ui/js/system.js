@@ -49,13 +49,15 @@ try {
           const data = await request();
           if (auth.currentUser !== user) return;
           list.replaceChildren();
-          if (!data.users.length) { list.textContent = "ユーザーが登録されていません。"; return; }
+          if (!data.users.length) { const row = document.createElement("tr"); const cell = document.createElement("td"); cell.colSpan = 3; cell.textContent = "ユーザーが登録されていません。"; row.append(cell); list.append(row); return; }
           for (const record of data.users) {
-            const row = document.createElement("div"); row.className = "user-row";
-            const text = document.createElement("p"); text.textContent = `${record.user_name} / ${record.email}`;
-            const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "編集";
+            const row = document.createElement("tr");
+            const userNameCell = document.createElement("td"); userNameCell.textContent = record.user_name;
+            const emailCell = document.createElement("td"); emailCell.textContent = record.email;
+            const actions = document.createElement("td");
+            const edit = document.createElement("button"); edit.type = "button"; edit.className = "btn"; edit.textContent = "編集";
             edit.onclick = () => openEditor(record);
-            const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "削除";
+            const remove = document.createElement("button"); remove.type = "button"; remove.className = "btn"; remove.textContent = "削除";
             remove.onclick = async () => {
               if (!confirm(`${record.user_name}（${record.email}）を削除しますか？削除後はログインできなくなります。`)) return;
               remove.disabled = true;
@@ -65,7 +67,7 @@ try {
                 errorBox.textContent = ""; status.textContent = "削除しました。"; await load();
               } catch (error) { showError(error); } finally { remove.disabled = false; }
             };
-            row.append(text, edit, remove); list.append(row);
+            actions.append(edit, remove); row.append(userNameCell, emailCell, actions); list.append(row);
           }
         }
         form.onsubmit = async event => {
