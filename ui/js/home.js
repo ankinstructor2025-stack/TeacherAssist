@@ -21,6 +21,10 @@ try {
     try {
       const session = await loadSession(user);
       if (auth.currentUser !== user) return;
+      if (session.is_system_administrator) {
+        window.location.replace("system_menu.html");
+        return;
+      }
       document.getElementById("userName").textContent = session.name || session.email;
       document.getElementById("userEmail").textContent = session.email;
       status.textContent = "";
