@@ -2,7 +2,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
-from app.main import app, current_user
+from app.main import app
+from app.auth import current_user
 
 
 class TeachingSubjectsTests(unittest.TestCase):
@@ -17,7 +18,7 @@ class TeachingSubjectsTests(unittest.TestCase):
         profile = {"school_code": "own-school", "prefecture": "県", "city": "市", "school_name": "学校"}
         books = [{"grades": [3, 4], "subject": "保健", "publisher": "出版社", "school_year": 2026, "source_url": "https://example.org/adoption"}]
         record = Mock(to_dict=lambda: {"profile": profile})
-        with patch("app.main.profile_document", return_value=record), patch("app.main.database") as db:
+        with patch("app.routers.teaching_subjects.profile_document", return_value=record), patch("app.routers.teaching_subjects.database") as db:
             db.return_value.collection.return_value.document.return_value.get.return_value = Mock(exists=True, to_dict=lambda: {"textbooks": books})
             response = self.client.get("/api/teaching-subjects?school_code=other-school")
             self.assertEqual(response.status_code, 200)
@@ -27,12 +28,12 @@ class TeachingSubjectsTests(unittest.TestCase):
             db.return_value.collection.return_value.document.assert_called_once_with("own-school")
 
     def test_no_school_does_not_query_adoptions(self):
-        with patch("app.main.profile_document", return_value=Mock(to_dict=lambda: {})), patch("app.main.database") as db:
+        with patch("app.routers.teaching_subjects.profile_document", return_value=Mock(to_dict=lambda: {})), patch("app.routers.teaching_subjects.database") as db:
             self.assertEqual(self.client.get("/api/teaching-subjects").json(), {"profile": {}, "covered": False, "textbooks": []})
             db.assert_not_called()
 
     def test_missing_public_data_is_not_presented_as_adopted(self):
-        with patch("app.main.profile_document", return_value=Mock(to_dict=lambda: {"profile": {"school_code": "school"}})), patch("app.main.database") as db:
+        with patch("app.routers.teaching_subjects.profile_document", return_value=Mock(to_dict=lambda: {"profile": {"school_code": "school"}})), patch("app.routers.teaching_subjects.database") as db:
             db.return_value.collection.return_value.document.return_value.get.return_value = Mock(exists=False)
             result = self.client.get("/api/teaching-subjects").json()
             self.assertFalse(result["covered"])

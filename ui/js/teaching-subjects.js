@@ -17,7 +17,7 @@ function render(data) {
   el("subjectList").replaceChildren();
   for (const book of rows) {
     const row = document.createElement("tr");
-    for (const text of [`${book.grades.join("・")}年`, book.subject, [book.title, book.publisher].filter(Boolean).join(" ／ "), `${book.school_year}年度`]) {
+    for (const text of [grade ? `${grade}年` : `${book.grades.join("・")}年`, book.subject, [book.title, book.publisher].filter(Boolean).join(" ／ "), `${book.school_year}年度`]) {
       const cell = document.createElement("td");
       cell.textContent = text;
       row.append(cell);

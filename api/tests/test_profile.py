@@ -2,7 +2,9 @@ import unittest
 from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
-from app.main import app, current_user, school_catalog
+from app.main import app
+from app.auth import current_user
+from app.services.schools import school_catalog
 
 
 class ProfileTests(unittest.TestCase):
@@ -29,7 +31,7 @@ class ProfileTests(unittest.TestCase):
         self.assertTrue(all(r["prefecture"] == sample["prefecture"] and r["city"] == sample["city"] for r in response.json()["schools"]))
 
     def test_unknown_school_cannot_be_saved(self):
-        with patch("app.main.store_profile") as store:
+        with patch("app.routers.profile.store_profile") as store:
             response = self.client.put("/api/profile", json={"school_code": "unknown"})
             self.assertEqual(response.status_code, 422)
             store.assert_not_called()
@@ -37,7 +39,7 @@ class ProfileTests(unittest.TestCase):
     def test_profile_save_uses_catalog_and_own_registration(self):
         sample = school_catalog()[0]
         record = Mock()
-        with patch("app.main.profile_document", return_value=record) as document, patch("app.main.database"), patch("app.main.store_profile") as store:
+        with patch("app.routers.profile.profile_document", return_value=record) as document, patch("app.routers.profile.database"), patch("app.routers.profile.store_profile") as store:
             response = self.client.put("/api/profile", json={"school_code": sample["code"], "email": "other@example.com", "city": "改ざん"})
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["profile"]["city"], sample["city"])
@@ -47,5 +49,5 @@ class ProfileTests(unittest.TestCase):
 
     def test_profile_restores_saved_selection(self):
         record = Mock(to_dict=lambda: {"profile": {"school_code": "saved"}})
-        with patch("app.main.profile_document", return_value=record):
+        with patch("app.routers.profile.profile_document", return_value=record):
             self.assertEqual(self.client.get("/api/profile").json(), {"profile": {"school_code": "saved"}})
