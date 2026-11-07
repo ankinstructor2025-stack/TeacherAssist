@@ -12,8 +12,8 @@ try {
     document.getElementById("error").textContent = "";
     try {
       const { user } = await signInWithPopup(auth, provider);
-      await loadSession(user);
-      window.location.replace("./html/home.html");
+      const session = await loadSession(user);
+      window.location.replace(session.is_system_administrator ? "./html/system_menu.html" : "./html/home.html");
     } catch (error) {
       await signOut(auth).catch(() => {});
       showError(error);

@@ -10,3 +10,8 @@ button:disabled { opacity: .6; cursor: wait; }
 button:focus-visible { outline: 3px solid #172d46; outline-offset: 3px; }
 .error { color: #b42318; white-space: pre-wrap; }
 [hidden] { display: none !important; }
+
+input { display: block; width: 100%; padding: 10px; font: inherit; border: 1px solid #aebdd0; border-radius: 6px; }
+.user-row { padding: 12px 0; border-bottom: 1px solid #d5deea; }
+.user-row button { margin-right: 8px; }
+#userForm { margin-top: 24px; }

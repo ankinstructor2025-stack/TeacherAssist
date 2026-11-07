@@ -8,7 +8,8 @@ export async function loadSession(user) {
     cache: "no-store"
   });
   if (!response.ok) {
-    const error = new Error(response.status === 401 ? "ログインの有効期限が切れました。再度ログインしてください。" : "ログイン情報を確認できませんでした。時間をおいて再試行してください。");
+    const detail = await response.json().catch(() => ({}));
+    const error = new Error(typeof detail.detail === "string" ? detail.detail : response.status === 401 ? "ログインの有効期限が切れました。再度ログインしてください。" : "ログイン情報を確認できませんでした。時間をおいて再試行してください。");
     error.status = response.status;
     throw error;
   }

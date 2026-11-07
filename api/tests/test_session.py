@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from fastapi.testclient import TestClient
 from firebase_admin import auth
@@ -23,14 +23,34 @@ class SessionTests(unittest.TestCase):
                 self.assertEqual(self.client.post("/api/session", headers={"Authorization": "Bearer invalid"}).status_code, 401)
 
     def test_google_session(self):
-        claims = {"uid": "test-user", "email": "teacher@example.com", "name": "先生", "firebase": {"sign_in_provider": "google.com"}}
-        with patch("app.main.verify_token", return_value=claims) as verify:
+        claims = {"uid": "test-user", "email": "teacher@example.com", "name": "先生", "email_verified": True, "firebase": {"sign_in_provider": "google.com"}}
+        with patch("app.main.verify_token", return_value=claims) as verify, patch("app.main.user_collection") as collection:
+            collection.return_value.where.return_value.limit.return_value.stream.return_value = [Mock(to_dict=lambda: {"user_name": "先生"})]
             response = self.client.post("/api/session", headers={"Authorization": "Bearer valid"})
         verify.assert_called_once_with("valid")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {k: claims[k] for k in ("uid", "email", "name")})
+        self.assertEqual(response.json(), {**{k: claims[k] for k in ("uid", "email", "name")}, "is_system_administrator": False})
         self.assertEqual(response.headers["cache-control"], "no-store")
 
+    def test_unregistered_user_is_rejected(self):
+        claims = {"uid": "u", "email": "unknown@example.com", "email_verified": True, "firebase": {"sign_in_provider": "google.com"}}
+        with patch.dict("os.environ", {"system_administrator": "admin@example.com"}), patch("app.main.verify_token", return_value=claims), patch("app.main.user_collection") as collection:
+            collection.return_value.where.return_value.limit.return_value.stream.return_value = []
+            self.assertEqual(self.client.post("/api/session", headers={"Authorization": "Bearer valid"}).status_code, 403)
+
+    def test_administrator_needs_no_registration(self):
+        claims = {"uid": "admin", "email": "Admin@example.com", "email_verified": True, "firebase": {"sign_in_provider": "google.com"}}
+        with patch.dict("os.environ", {"system_administrator": "admin@example.com"}), patch("app.main.verify_token", return_value=claims), patch("app.main.user_collection") as collection:
+            response = self.client.post("/api/session", headers={"Authorization": "Bearer valid"})
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.json()["is_system_administrator"])
+            collection.assert_not_called()
+
+    def test_registered_user_cannot_manage_users(self):
+        claims = {"uid": "u", "email": "teacher@example.com", "email_verified": True, "firebase": {"sign_in_provider": "google.com"}}
+        with patch.dict("os.environ", {"system_administrator": "admin@example.com"}), patch("app.main.verify_token", return_value=claims), patch("app.main.user_collection") as collection:
+            collection.return_value.where.return_value.limit.return_value.stream.return_value = [Mock(to_dict=lambda: {"user_name": "先生"})]
+            self.assertEqual(self.client.get("/api/system/users", headers={"Authorization": "Bearer valid"}).status_code, 403)
     def test_other_provider(self):
         with patch("app.main.verify_token", return_value={"firebase": {"sign_in_provider": "password"}}):
             self.assertEqual(self.client.post("/api/session", headers={"Authorization": "Bearer other"}).status_code, 403)

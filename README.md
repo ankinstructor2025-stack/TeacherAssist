@@ -58,3 +58,11 @@ firebase deploy --only hosting --project teacherassist-514007
 公開先: https://teacherassist-514007.web.app
 
 Cloud Runが存在しない状態ではHostingのAPI転送設定をデプロイできません。公開後にGoogleログイン・ログアウトと未認証拒否を確認してください。
+
+## ユーザー管理の設定
+
+Cloud Runに `system_administrator=管理者のGoogleメールアドレス` と `FIRESTORE_DATABASE_ID=teacher-assist` を設定します。
+同じFirebaseプロジェクトにStandard版Firestoreデータベース `teacher-assist` を作成します。`users` コレクションは最初のユーザー登録で作成されます。
+実行用サービスアカウントにFirestoreの読み書き権限（`roles/datastore.user`）を付与します。
+管理者がシステムメニューのユーザー管理でメールアドレス・氏名を登録すると、対象者がGoogleログインで利用可能になります。
+メール・氏名の編集、利用登録の削除もこの画面で行います。登録されていない人は利用できません。
