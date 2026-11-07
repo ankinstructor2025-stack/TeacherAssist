@@ -208,4 +208,16 @@ def session(response: Response, user: Annotated[dict, Depends(current_user)]):
     return {"uid": user["uid"], "email": user.get("email", ""), "name": user.get("name", ""), "is_system_administrator": is_system_administrator(user)}
 
 
+@app.get("/api/teaching-subjects")
+def teaching_subjects(response: Response, user: Annotated[dict, Depends(current_user)]):
+    response.headers["Cache-Control"] = "no-store"
+    profile = profile_document(user).to_dict().get("profile", {})
+    school_code = profile.get("school_code")
+    # School identity always comes from the authenticated user's saved profile.
+    # Verified public adoption records are shared by all members of the school.
+    adoption = database().collection("school_textbook_adoptions").document(school_code).get() if school_code else None
+    data = adoption.to_dict() if adoption is not None and adoption.exists else {}
+    return {"profile": profile, "covered": bool(data.get("textbooks")), "textbooks": data.get("textbooks", [])}
+
+
 app.mount("/", StaticFiles(directory=Path(__file__).resolve().parents[2] / "ui", html=True), name="ui")
