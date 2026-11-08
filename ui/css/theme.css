@@ -142,6 +142,7 @@ select:disabled { opacity: .6; }
 .subject-table th { padding: 10px; background: linear-gradient(180deg,#eef3f8,#e3eaf3); color: #334155; border-block: 1px solid var(--panel-border); font-size: 12px; }
 .subject-table td { padding: 12px 10px; border-bottom: 1px solid var(--card-border); overflow-wrap: anywhere; }
 .subject-caption { text-align: left; font-weight: 700; padding-bottom: 16px; }
+.textbook-output { display: block; padding: 12px; border: 1px solid var(--card-border); border-radius: 10px; overflow-wrap: anywhere; }
 .page-toolbar { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 20px; margin-bottom: 20px; }
 .page-toolbar-title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
 .page-toolbar-main { display: grid; grid-template-columns: minmax(80px,1fr) minmax(90px,1fr) minmax(140px,2fr); gap: 10px; margin: 0; min-width: 0; }

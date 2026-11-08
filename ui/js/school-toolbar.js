@@ -1,5 +1,5 @@
 // Shared school context, using qaplain's page-toolbar layout.
-export function mountSchoolToolbar(title) {
+export function mountSchoolToolbar(title, { backHref = "home.html", backLabel = "メニューに戻る", buttons = [] } = {}) {
   const toolbar = document.getElementById("schoolToolbar");
   const heading = document.createElement("h1");
   heading.className = "page-toolbar-title";
@@ -22,8 +22,9 @@ export function mountSchoolToolbar(title) {
   actions.setAttribute("aria-label", "画面操作");
   const back = document.createElement("a");
   back.className = "btn";
-  back.href = "home.html";
-  back.textContent = "メニューに戻る";
+  back.href = backHref;
+  back.textContent = backLabel;
+  actions.append(...buttons);
   actions.append(back);
   toolbar.replaceChildren(heading, fields, actions);
   return profile => {

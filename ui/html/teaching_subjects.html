@@ -4,24 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>担当科目 | TeacherAssist</title>
-  <link rel="stylesheet" href="../css/theme.css?v=20261108-3">
-  <script type="module" src="../js/teaching-subjects.js?v=20261108-3"></script>
+  <link rel="stylesheet" href="../css/theme.css?v=20261108-4">
+  <script type="module" src="../js/teaching-subjects.js?v=20261108-4"></script>
 </head>
 <body>
 <main class="management-page">
   <header id="schoolToolbar" class="page-toolbar"></header>
   <p id="status" role="status">ログイン情報を確認しています…</p>
   <section id="content" class="card" hidden aria-label="担当科目一覧">
-    <div class="form-grid">
-      <div><label for="grade">学年</label><select id="grade"><option value="">学年を選択してください</option></select></div>
-      <div><label for="subject">科目</label><select id="subject"><option value="">科目を選択してください</option></select></div>
-    </div>
     <p id="listStatus" role="status"></p>
     <p id="profileNotice" hidden>学校が登録されていません。<a href="profile.html">プロフィールで学校を登録してください。</a></p>
-    <div id="textbookResult" class="list-scroll" hidden>
+    <div class="list-scroll">
       <table class="subject-table">
-        <caption class="subject-caption">所属校の採択教科書</caption>
-        <thead><tr><th scope="col">学年</th><th scope="col">科目</th><th scope="col">採択している教科書・出版社</th><th scope="col">使用年度</th><th scope="col">公開採択情報</th></tr></thead>
+        <caption class="subject-caption">担当科目一覧</caption>
+        <thead><tr><th scope="col">学年</th><th scope="col">科目</th><th scope="col">教科書</th><th scope="col">操作</th></tr></thead>
         <tbody id="subjectList"></tbody>
       </table>
     </div>
