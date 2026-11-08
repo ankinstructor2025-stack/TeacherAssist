@@ -28,6 +28,8 @@ async function screen({ saved = false, saveFails = false, listFails = false } = 
       if (url === '/api/profile') {
         ok = !(settings.method === 'PUT' && saveFails);
         data = { profile: saved || settings.method === 'PUT' ? profile : {} };
+      } else if (url === '/api/profile/ai') {
+        data = { models: [], settings: { model_id: '', has_api_key: false } };
       } else if (url === '/api/teaching-subjects') {
         ok = !listFails;
         data = { profile, covered: true, textbooks: [{ grades: [1, 2, 3, 4, 5, 6], subject: '国語', publisher: '光村図書', school_year: 2026, source_url: 'https://example.org/source' }] };
@@ -38,6 +40,7 @@ async function screen({ saved = false, saveFails = false, listFails = false } = 
     }
   };
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/profile-ai.js'), 'utf8').replace(/^export /gm, ''), context);
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/textbook-list.js'), 'utf8').replace('export function', 'function'), context);
   const source = fs.readFileSync(path.join(__dirname, '../js/profile.js'), 'utf8').replace(/^import .*;$/gm, '');
   await vm.runInContext(`(async () => {${source}})()`, context);

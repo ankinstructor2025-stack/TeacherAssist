@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>プロフィール | TeacherAssist</title>
-  <link rel="stylesheet" href="../css/theme.css?v=20261108-3">
-  <script type="module" src="../js/profile.js?v=20261108-5"></script>
+  <link rel="stylesheet" href="../css/theme.css?v=20261108-8">
+  <script type="module" src="../js/profile.js?v=20261108-8"></script>
 </head>
 <body>
 <main class="management-page">
@@ -26,6 +26,18 @@
       <div class="page-actions"><button id="saveProfileButton" class="btn btn-primary" type="submit" disabled>登録</button></div>
       <p class="school-source">学校一覧：<a href="https://www.mext.go.jp/b_menu/toukei/mext_01087.html" target="_blank" rel="noopener noreferrer">文部科学省 学校コード一覧</a>（令和8年5月1日時点・暫定版）</p>
     </form>
+  </section>
+  <section id="profileAi" class="card page-footer" hidden aria-labelledby="profileAiTitle">
+    <h2 id="profileAiTitle">API設定</h2>
+    <form id="aiSettingsForm">
+      <div class="form-grid">
+        <div><label for="aiModel">モデル</label><select id="aiModel" required disabled><option value="">モデルを選択してください</option></select></div>
+        <div><label for="aiApiKey">APIキー</label><div class="secret-input"><input id="aiApiKey" type="password" autocomplete="new-password" spellcheck="false" maxlength="4096" disabled><button id="toggleAiKey" type="button" class="btn">表示</button></div></div>
+      </div>
+      <div class="page-actions"><button id="saveAiButton" type="submit" class="btn btn-primary" disabled>API設定を保存</button><button id="testAiButton" type="button" class="btn" disabled>疎通テスト</button></div>
+    </form>
+    <p id="aiStatus" role="status"></p>
+    <p id="aiTestResult" role="status" aria-live="polite"></p>
   </section>
   <section id="profileTextbooks" class="card page-footer" hidden aria-labelledby="profileTextbooksTitle">
     <h2 id="profileTextbooksTitle">登録した学校の採択教科書</h2>

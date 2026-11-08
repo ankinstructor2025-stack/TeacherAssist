@@ -3,6 +3,7 @@ import { initializeAuth } from "./firebase-config.js";
 import { loadSession, showError } from "./common.js";
 import { API_BASE_URL } from "./config.js";
 import { renderTextbookRows } from "./textbook-list.js";
+import { resetProfileAi, setupProfileAi } from "./profile-ai.js?v=20261108-8";
 
 const el = id => document.getElementById(id);
 const prefecture = el("prefecture");
@@ -21,6 +22,7 @@ try {
     try { await signOut(auth); window.location.replace("../index.html"); } catch (error) { showError(error); }
   };
   onAuthStateChanged(auth, async user => {
+    resetProfileAi();
     el("content").hidden = true;
     el("profileTextbooks").hidden = true;
     el("profileTextbookList").replaceChildren();
@@ -103,7 +105,7 @@ try {
       if (auth.currentUser !== user) return;
       el("status").textContent = profile.school_code && !school.value ? "以前登録した学校が現在の一覧にありません。学校を選択し直してください。" : "";
       el("content").hidden = false;
-      await loadTextbooks(profile);
+      await Promise.all([loadTextbooks(profile), setupProfileAi(request, () => auth.currentUser === user)]);
     } catch (error) {
       el("status").textContent = "プロフィールを取得できませんでした。";
       showError(error);

@@ -132,6 +132,9 @@ select { display: block; width: 100%; min-width: 0; border: 1px solid var(--inpu
 select:focus { outline: 2px solid #3b82f6; outline-offset: 2px; }
 select:disabled { opacity: .6; }
 .school-source { color: #a9b6d4; font-size: 12px; }
+.secret-input { display: flex; align-items: center; gap: 8px; }
+.secret-input input { flex: 1; }
+.secret-input button { flex-shrink: 0; }
 .profile-school-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,2fr); gap: 12px; }
 @media(max-width:640px) {
   .profile-school-grid { grid-template-columns: 1fr; }

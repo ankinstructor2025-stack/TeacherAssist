@@ -1,5 +1,7 @@
 # TeacherAssist
 
+プロフィールのAPI設定・暗号化キー・疎通テストの設定手順は [API設定](management/requirements/profile-api.md) を参照してください。
+
 Googleログインを備えた独立アプリの初期構成です。TeacherAssist専用Firebaseプロジェクト `teacherassist-514007` を使用します。
 
 - `api/`: FastAPI・Firebase IDトークン検証
