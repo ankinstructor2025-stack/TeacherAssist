@@ -36,7 +36,7 @@ await startTeachingPage("担当科目", { buttons: [add] }, async (data, request
     remove.textContent = "削除";
     remove.setAttribute("aria-label", `${assignment.grade}年 ${assignment.subject}を削除`);
     remove.onclick = async () => {
-      const warning = assignment.has_lesson_plans ? "この担当科目の指導案も開けなくなります。" : "";
+      const warning = assignment.has_lesson_plans || assignment.has_homework ? "この担当科目の指導案・宿題も開けなくなります。" : "";
       if (!isCurrent() || !window.confirm(`${assignment.grade}年 ${assignment.subject}を削除しますか？${warning}`)) return;
       remove.disabled = true;
       try {
@@ -48,8 +48,12 @@ await startTeachingPage("担当科目", { buttons: [add] }, async (data, request
     plans.className = "btn btn-primary";
     plans.href = `lesson_plans.html?assignment=${encodeURIComponent(assignment.id)}`;
     plans.textContent = "指導案";
+    const homework = document.createElement("a");
+    homework.className = "btn btn-primary";
+    homework.href = `homework.html?assignment=${encodeURIComponent(assignment.id)}`;
+    homework.textContent = "宿題";
     actions.className = "row-actions";
-    actions.append(edit, remove, plans);
+    actions.append(edit, remove, plans, homework);
     row.append(actions);
     el("subjectList").append(row);
   }

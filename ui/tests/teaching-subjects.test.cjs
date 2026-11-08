@@ -27,7 +27,7 @@ async function screen(file, data, options = {}) {
       context.requests ||= [];
       context.requests.push({ url, settings });
       const failure = settings.method ? options.saveFailure : url.endsWith('/profile') ? options.profileFailure : options.failure;
-      const result = url.endsWith('/suggest') ? { suggestion: { title: 'AIの提案', objectives: '提案した目標', activities: '導入・展開・まとめ', student_questions: '児童：なぜ？ 教師：比べよう。', assessment: '提案した評価', notes: '準備' } } : data;
+      const result = url.endsWith('/homework/suggest') ? { suggestion: homeworkSuggestion } : url.endsWith('/suggest') ? { suggestion: { title: 'AIの提案', objectives: '提案した目標', activities: '導入・展開・まとめ', student_questions: '児童：なぜ？ 教師：比べよう。', assessment: '提案した評価', notes: '準備' } } : data;
       return { ok: !failure, status: failure || 200, json: async () => failure ? { detail: '保存できません。' } : result };
     }
   };
@@ -52,8 +52,9 @@ test('list displays saved grade, subject, textbook and edit link', async () => {
   const cells = elements.subjectList.children[0].children;
   assert.deepEqual(cells.slice(0, 3).map(cell => cell.textContent), ['4年', '国語', '光村図書']);
   assert.equal(cells[3].children[0].href, 'teaching_subject_edit.html?id=one');
-  assert.deepEqual(cells[3].children.map(button => button.textContent), ['修正', '削除', '指導案']);
+  assert.deepEqual(cells[3].children.map(button => button.textContent), ['修正', '削除', '指導案', '宿題']);
   assert.equal(cells[3].children[2].href, 'lesson_plans.html?assignment=one');
+  assert.equal(cells[3].children[3].href, 'homework.html?assignment=one');
   assert.equal(buttons[0].href, 'teaching_subject_edit.html');
   assert.equal(buttons[0].hidden, false);
 });
@@ -276,4 +277,39 @@ test('older lesson plans keep flow and open empty question area', async () => {
   const { elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
   assert.equal(elements.activities.value, '以前の内容');
   assert.equal(elements.studentQuestions.value, '');
+});
+
+const homeworkSuggestion = { title: '整数と小数の宿題', ...Object.fromEntries(['beginner', 'intermediate', 'advanced'].flatMap(level => [[`${level}_questions`, `${level}の問題`], [`${level}_answers`, `${level}の解答`]])) };
+const homeworkData = { ...lessonData, homework: [] };
+
+test('homework generation fills three levels and answers without autosaving', async () => {
+  const { context, elements } = await screen('homework-edit.js', homeworkData, { search: '?assignment=one' });
+  elements.unit.value = '整数と小数'; elements.minutes.value = '15';
+  await elements.generateHomeworkButton.onclick();
+  assert.equal(context.requests.filter(call => call.settings.method === 'POST').length, 1);
+  for (const key of Object.keys(homeworkSuggestion)) assert.equal(elements[key === 'title' ? 'homeworkTitle' : key].value, homeworkSuggestion[key]);
+  assert.match(elements.generationStatus.textContent, /確認・修正/);
+  await elements.homeworkForm.onsubmit({ preventDefault() {} });
+  const saved = context.requests.find(call => call.url.endsWith('/homework') && call.settings.method === 'POST');
+  assert.equal(JSON.parse(saved.settings.body).advanced_answers, 'advancedの解答');
+  assert.equal(context.destination, 'homework.html?assignment=one');
+});
+
+test('homework generation failure keeps the draft available for retry', async () => {
+  const { elements } = await screen('homework-edit.js', homeworkData, { search: '?assignment=one', saveFailure: 502 });
+  elements.unit.value = '単元'; elements.minutes.value = '15'; elements.beginner_questions.value = '下書き';
+  await elements.generateHomeworkButton.onclick();
+  assert.equal(elements.beginner_questions.value, '下書き');
+  assert.equal(elements.generateHomeworkButton.disabled, false);
+});
+
+test('homework list and editor restore saved content and update original record', async () => {
+  const fixture = { ...homeworkData, homework: [{ ...homeworkSuggestion, id: 'saved', unit: '単元', minutes: 15, created_at: '2026-11-07T16:00:00+00:00' }] };
+  const list = await screen('homework.js', fixture, { search: '?assignment=one' });
+  assert.equal(list.elements.homeworkList.children[0].children[2].textContent, '2026/11/8');
+  assert.equal(list.elements.homeworkList.children[0].children[3].children[0].href, 'homework_edit.html?assignment=one&id=saved');
+  const { context, elements } = await screen('homework-edit.js', fixture, { search: '?assignment=one&id=saved' });
+  assert.equal(elements.advanced_answers.value, 'advancedの解答');
+  await elements.homeworkForm.onsubmit({ preventDefault() {} });
+  assert.equal(context.requests.find(call => call.settings.method === 'PUT').url, '/api/teaching-assignments/one/homework/saved');
 });

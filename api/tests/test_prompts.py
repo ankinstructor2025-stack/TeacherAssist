@@ -40,7 +40,7 @@ class PromptTests(unittest.TestCase):
         app.dependency_overrides[administrator] = lambda: {}
         value = {"prompt_type": "lesson_plan", "prompt_name": "指導案作成用", "prompt_text": "共通方針", "updated_at": None, "exists": False, "fixed_rules": FIXED_RULES}
         with patch("app.routers.system_prompts.common_prompt", return_value=value), patch("app.routers.system_prompts.database") as db:
-            self.assertEqual(len(self.client.get("/api/system/prompts").json()["prompts"]), 1)
+            self.assertEqual(len(self.client.get("/api/system/prompts").json()["prompts"]), 2)
             self.assertEqual(self.client.get("/api/system/prompts/lesson_plan").json()["fixed_rules"], FIXED_RULES)
             self.assertEqual(self.client.put("/api/system/prompts/lesson_plan", json={"prompt_text": " 発問を重視 "}).status_code, 200)
             stored = db.return_value.collection.return_value.document.return_value.set.call_args.args[0]
@@ -52,7 +52,7 @@ class PromptTests(unittest.TestCase):
         with patch("app.routers.profile_prompts.profile_document", return_value=Mock(to_dict=lambda: {"profile": {}})), patch("app.routers.profile_prompts.user_prompt_reference") as reference:
             response = self.client.put("/api/profile/prompts/lesson_plan", json={"prompt_text": " 対話を重視 "})
             self.assertEqual(response.status_code, 200)
-            reference.assert_called_with("teacher")
+            reference.assert_called_with("teacher", "lesson_plan")
             self.assertEqual(reference.return_value.set.call_args.args[0]["prompt_text"], "対話を重視")
             self.assertTrue(self.client.put("/api/profile/prompts/lesson_plan", json={"prompt_text": ""}).json()["use_common"])
             self.assertEqual(self.client.put("/api/profile/prompts/lesson_plan", json={"prompt_text": "x", "output_schema": {}}).status_code, 422)

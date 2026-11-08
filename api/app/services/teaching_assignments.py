@@ -17,8 +17,8 @@ def save_assignment(transaction, reference, email, school_code, values, assignme
     assignments = dict(data.get("teaching_assignments", {}))
     if assignment_id and (assignment_id not in assignments or assignments[assignment_id].get("deleted") or assignments[assignment_id]["school_code"] != school_code):
         raise HTTPException(404, "担当科目が見つかりません。")
-    if assignment_id and assignments[assignment_id].get("has_lesson_plans") and any(assignments[assignment_id][field] != values[field] for field in ("grade", "subject")):
-        raise HTTPException(409, "指導案があるため学年・科目は変更できません。別の担当科目として新規登録してください。")
+    if assignment_id and (assignments[assignment_id].get("has_lesson_plans") or assignments[assignment_id].get("has_homework")) and any(assignments[assignment_id][field] != values[field] for field in ("grade", "subject")):
+        raise HTTPException(409, "指導案または宿題があるため学年・科目は変更できません。別の担当科目として新規登録してください。")
     if any(key != assignment_id and not item.get("deleted") and item["school_code"] == school_code
            and item["grade"] == values["grade"] and item["subject"] == values["subject"]
            for key, item in assignments.items()):

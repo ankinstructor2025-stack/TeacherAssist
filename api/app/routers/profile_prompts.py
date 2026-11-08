@@ -21,7 +21,7 @@ def get_prompt(prompt_type: str, response: Response, user: Annotated[dict, Depen
     response.headers["Cache-Control"] = "no-store"
     check_type(prompt_type)
     profile = profile_document(user).to_dict().get("profile", {})
-    return {"profile": profile, **user_prompt(user["uid"])}
+    return {"profile": profile, **user_prompt(user["uid"], prompt_type)}
 
 
 @router.put("/{prompt_type}")
@@ -30,5 +30,5 @@ def save_prompt(prompt_type: str, body: CustomPromptRequest, response: Response,
     check_type(prompt_type)
     profile_document(user)
     text = body.prompt_text.strip()
-    user_prompt_reference(user["uid"]).set({"prompt_text": text, "updated_at": datetime.now(timezone.utc).isoformat()})
+    user_prompt_reference(user["uid"], prompt_type).set({"prompt_text": text, "updated_at": datetime.now(timezone.utc).isoformat()})
     return {"prompt_text": text, "use_common": not bool(text)}

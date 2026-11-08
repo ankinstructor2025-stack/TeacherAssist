@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from ..auth import administrator
 from ..firebase import database
-from ..services.prompts import check_type, common_prompt
+from ..services.prompts import check_type, common_prompt, PROMPT_TYPES
 
 router = APIRouter(prefix="/api/system/prompts", dependencies=[Depends(administrator)])
 
@@ -18,15 +18,14 @@ class PromptRequest(BaseModel):
 @router.get("")
 def list_prompts(response: Response):
     response.headers["Cache-Control"] = "no-store"
-    value = common_prompt()
-    return {"prompts": [{key: value[key] for key in ("prompt_type", "prompt_name", "updated_at", "exists")}]}
+    return {"prompts": [{key: value[key] for key in ("prompt_type", "prompt_name", "updated_at", "exists")} for value in (common_prompt(kind) for kind in PROMPT_TYPES)]}
 
 
 @router.get("/{prompt_type}")
 def get_prompt(prompt_type: str, response: Response):
     response.headers["Cache-Control"] = "no-store"
     check_type(prompt_type)
-    return common_prompt()
+    return common_prompt(prompt_type)
 
 
 @router.put("/{prompt_type}")
