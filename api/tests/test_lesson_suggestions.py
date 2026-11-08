@@ -18,7 +18,7 @@ class LessonSuggestionTests(unittest.TestCase):
         self.user = {"uid": "teacher", "email": "teacher@example.com"}
         app.dependency_overrides[current_user] = lambda: self.user
         self.context = {"grade": 5, "subject": "算数", "unit": "整数と小数", "hours": 1}
-        self.result = {"title": "整数と小数", "objectives": "目標", "activities": "導入・展開・まとめ", "assessment": "評価", "notes": "準備"}
+        self.result = {"title": "整数と小数", "objectives": "目標", "activities": "導入・展開・まとめ", "student_questions": "児童：なぜですか？ 教師：比べてみよう。", "assessment": "評価", "notes": "準備"}
 
     def tearDown(self):
         self.prompt_patch.stop()

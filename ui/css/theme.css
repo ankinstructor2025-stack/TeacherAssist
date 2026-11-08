@@ -150,6 +150,8 @@ select:disabled { opacity: .6; }
 .row-actions .btn { margin: 3px; padding: 7px 12px; }
 textarea { display: block; width: 100%; border: 1px solid var(--input-border); border-radius: 10px; padding: 12px; font: inherit; background: #fff; color: #111827; color-scheme: light; resize: vertical; }
 .lesson-fields { display: grid; gap: 20px; }
+.lesson-question-panel { padding: 20px; border: 1px solid rgba(96,165,250,.35); border-radius: 12px; background: rgba(30,64,175,.12); }
+.lesson-question-panel p { color: #cbd5e1; margin: 0 0 16px; font-size: 14px; }
 .lesson-context { color: #cbd5e1; }
 .contents-panel { margin-bottom: 24px; }
 .contents-panel summary { cursor: pointer; font-weight: 700; }

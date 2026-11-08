@@ -13,6 +13,7 @@ class LessonSuggestion(BaseModel):
     title: str = Field(min_length=1, max_length=150)
     objectives: str = Field(min_length=1, max_length=10000)
     activities: str = Field(min_length=1, max_length=20000)
+    student_questions: str = Field(min_length=1, max_length=10000)
     assessment: str = Field(min_length=1, max_length=10000)
     notes: str = Field(max_length=10000)
 
@@ -33,7 +34,7 @@ def suggest_lesson(uid, context):
         if text.startswith("```") and text.endswith("```"):
             text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
         result = LessonSuggestion.model_validate_json(text)
-        if any(not getattr(result, field).strip() for field in ("title", "objectives", "activities", "assessment")):
+        if any(not getattr(result, field).strip() for field in ("title", "objectives", "activities", "student_questions", "assessment")):
             raise ValueError("empty suggestion")
     except (ValidationError, ValueError, IndexError):
         raise HTTPException(502, "AI提案の形式を読み取れませんでした。再度お試しください。") from None

@@ -27,11 +27,11 @@ async function screen(file, data, options = {}) {
       context.requests ||= [];
       context.requests.push({ url, settings });
       const failure = settings.method ? options.saveFailure : url.endsWith('/profile') ? options.profileFailure : options.failure;
-      const result = url.endsWith('/suggest') ? { suggestion: { title: 'AIの提案', objectives: '提案した目標', activities: '導入・展開・まとめ', assessment: '提案した評価', notes: '準備' } } : data;
+      const result = url.endsWith('/suggest') ? { suggestion: { title: 'AIの提案', objectives: '提案した目標', activities: '導入・展開・まとめ', student_questions: '児童：なぜ？ 教師：比べよう。', assessment: '提案した評価', notes: '準備' } } : data;
       return { ok: !failure, status: failure || 200, json: async () => failure ? { detail: '保存できません。' } : result };
     }
   };
-  for (const id of ['hours', 'objectives', 'activities', 'assessment', 'notes']) context.document.getElementById(id);
+  for (const id of ['hours', 'objectives', 'activities', 'studentQuestions', 'assessment', 'notes']) context.document.getElementById(id);
   vm.createContext(context);
   context.URL = URL;
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/instruction-links.js'), 'utf8').replace('export function', 'function'), context);
@@ -221,6 +221,8 @@ test('AI suggestion fills editable draft without saving it or marking it as crea
   assert.equal(calls[0].url, '/api/teaching-assignments/one/lesson-plans/suggest');
   assert.equal(JSON.parse(calls[0].settings.body).subject, '国語');
   assert.equal(elements.objectives.value, '提案した目標');
+  assert.equal(elements.studentQuestions.value, '児童：なぜ？ 教師：比べよう。');
+  assert.equal(elements.activities.value, '導入・展開・まとめ');
   assert.equal(elements.planCreatedAt.textContent, '未作成');
   assert.match(elements.aiSuggestionStatus.textContent, /確認・修正/);
   assert.equal(elements.suggestLessonButton.disabled, false);
@@ -255,4 +257,23 @@ test('assignment list displays publisher materials below textbook name', async (
   const links = elements.subjectList.children[0].children[2].children[0];
   assert.equal(links.children[0].href, material.url);
   assert.match(links.children[0].textContent, /年間指導計画/);
+});
+
+test('student dialogue is restored and saved independently from lesson flow', async () => {
+  const plan = { id: 'plan', title: '授業', unit: '単元', hours: 1, activities: '授業の流れ', student_questions: '児童：なぜ？ 教師：図で比べよう。' };
+  const { context, elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
+  assert.equal(elements.activities.value, '授業の流れ');
+  assert.equal(elements.studentQuestions.value, plan.student_questions);
+  elements.studentQuestions.value = '修正した想定問答';
+  await elements.lessonPlanForm.onsubmit({ preventDefault() {} });
+  const body = JSON.parse(context.requests.find(request => request.settings.method === 'PUT').settings.body);
+  assert.equal(body.student_questions, '修正した想定問答');
+  assert.equal(body.activities, '授業の流れ');
+});
+
+test('older lesson plans keep flow and open empty question area', async () => {
+  const plan = { id: 'plan', title: '以前の授業', unit: '単元', hours: 1, activities: '以前の内容' };
+  const { elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
+  assert.equal(elements.activities.value, '以前の内容');
+  assert.equal(elements.studentQuestions.value, '');
 });

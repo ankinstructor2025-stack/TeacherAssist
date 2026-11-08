@@ -24,6 +24,7 @@ class LessonPlanRequest(BaseModel):
     hours: int = Field(ge=1, le=100, default=1)
     objectives: str = Field(max_length=10000, default="")
     activities: str = Field(max_length=20000, default="")
+    student_questions: str = Field(max_length=10000, default="")
     assessment: str = Field(max_length=10000, default="")
     notes: str = Field(max_length=10000, default="")
 

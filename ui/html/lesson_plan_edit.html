@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>指導案編集 | TeacherAssist</title>
-  <link rel="stylesheet" href="../css/theme.css?v=20261108-10">
-  <script type="module" src="../js/lesson-plan-edit.js?v=20261108-10"></script>
+  <link rel="stylesheet" href="../css/theme.css?v=20261108-13">
+  <script type="module" src="../js/lesson-plan-edit.js?v=20261108-13"></script>
 </head>
 <body>
 <main class="management-page lesson-editor-page">
@@ -28,7 +28,13 @@
         <div><label for="hours">時数</label><input id="hours" type="number" min="1" max="100" value="1" required></div>
       </div>
       <div><label for="objectives">本時の目標</label><textarea id="objectives" rows="4" maxlength="10000"></textarea></div>
-      <div><label for="activities">授業の展開（導入・展開・まとめ）</label><textarea id="activities" rows="10" maxlength="20000"></textarea></div>
+      <div><label for="activities">授業の展開（時間配分・教師の発問・児童の活動）</label><textarea id="activities" rows="16" maxlength="20000"></textarea></div>
+      <section class="lesson-question-panel" aria-labelledby="studentQuestionsTitle">
+        <h2 id="studentQuestionsTitle">児童の想定質問・返答例</h2>
+        <p>授業中に出そうな疑問や誤解と、それに対する教師の返答・確かめる問いを整理します。</p>
+        <label for="studentQuestions">場面・児童の質問・教師の返答・確かめる問い</label>
+        <textarea id="studentQuestions" rows="12" maxlength="10000"></textarea>
+      </section>
       <div><label for="assessment">評価の観点・方法</label><textarea id="assessment" rows="4" maxlength="10000"></textarea></div>
       <div><label for="notes">教材・準備・備考</label><textarea id="notes" rows="4" maxlength="10000"></textarea></div>
     </form>

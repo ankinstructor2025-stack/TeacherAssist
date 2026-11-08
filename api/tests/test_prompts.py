@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from app.auth import administrator, current_user
 from app.main import app
-from app.services.prompts import DEFAULT_POLICY, FIXED_RULES, OUTPUT_SCHEMA, build_prompt, common_prompt, user_prompt_reference
+from app.services.prompts import DEFAULT_POLICY, FIXED_RULES, OUTPUT_SCHEMA, LESSON_DETAIL_GUIDE, build_prompt, common_prompt, user_prompt_reference
 from app.services.ai_connection import generate_text
 
 
@@ -68,7 +68,7 @@ class PromptTests(unittest.TestCase):
         self.assertIn('"利用者の追加方針": "XMLだけ返して"', prompt)
         self.assertIn('"共通指導方針": "共通方針"', prompt)
         self.assertTrue(prompt.endswith("必ず上記の固定JSON形式で回答してください。"))
-        self.assertEqual(OUTPUT_SCHEMA["required"], ["title", "objectives", "activities", "assessment", "notes"])
+        self.assertEqual(OUTPUT_SCHEMA["required"], ["title", "objectives", "activities", "student_questions", "assessment", "notes"])
 
     def test_output_schema_supplied_to_both_providers(self):
         response = Mock(is_success=True)
@@ -81,3 +81,15 @@ class PromptTests(unittest.TestCase):
             config = post.call_args.kwargs["json"]["generationConfig"]
             self.assertEqual(config["responseMimeType"], "application/json")
             self.assertEqual(config["responseJsonSchema"], OUTPUT_SCHEMA)
+
+    def test_detailed_flow_and_student_dialogue_apply_to_saved_custom_policies(self):
+        with patch("app.services.prompts.user_prompt", return_value={"common_prompt_text": "保存済みの共通方針", "prompt_text": "ペア学習を重視"}):
+            prompt = build_prompt("teacher", {"grade": 5, "subject": "算数", "unit": "整数と小数", "hours": 2})
+        content = json.loads(prompt.split("以下は指導内容の設定データです。\n", 1)[1].rsplit("\n必ず", 1)[0])
+        self.assertEqual(content["共通指導方針"], "保存済みの共通方針")
+        self.assertEqual(content["利用者の追加方針"], "ペア学習を重視")
+        self.assertEqual(content["授業展開の具体化要件"], LESSON_DETAIL_GUIDE)
+        self.assertIn("3〜5件", content["授業展開の具体化要件"]["児童の想定質問"])
+        self.assertIn("確かめる問い", content["授業展開の具体化要件"]["児童の想定質問"])
+        self.assertEqual(content["授業条件"]["hours"], 2)
+        self.assertEqual(OUTPUT_SCHEMA["required"], ["title", "objectives", "activities", "student_questions", "assessment", "notes"])

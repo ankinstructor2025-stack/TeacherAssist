@@ -17,7 +17,7 @@ save.disabled = true;
 
 await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [save], backHref: back, backLabel: "一覧に戻る" }, async (data, request, isCurrent) => {
   el("lessonContext").textContent = `${data.assignment.grade}年 ／ ${data.assignment.subject} ／ ${data.assignment.textbook}`;
-  const fields = { title: "planTitle", unit: "unit", hours: "hours", objectives: "objectives", activities: "activities", assessment: "assessment", notes: "notes" };
+  const fields = { title: "planTitle", unit: "unit", hours: "hours", objectives: "objectives", activities: "activities", student_questions: "studentQuestions", assessment: "assessment", notes: "notes" };
   const unitButtons = [];
   const snapshot = () => JSON.stringify(Object.values(fields).map(field => String(el(field).value)));
   let baseline;
@@ -88,7 +88,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
       el("aiSuggestionStatus").textContent = "単元と時数を入力してください。";
       return;
     }
-    if (["objectives", "activities", "assessment", "notes"].some(field => el(field).value.trim()) && !window.confirm("現在の入力をAI提案で置き換えますか？")) return;
+    if (["objectives", "activities", "studentQuestions", "assessment", "notes"].some(field => el(field).value.trim()) && !window.confirm("現在の入力をAI提案で置き換えますか？")) return;
     suggesting = true;
     suggest.disabled = save.disabled = true;
     suggest.textContent = "提案中…";
@@ -98,7 +98,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
     try {
       const result = await request(`${endpoint}/suggest`, { method: "POST", body: JSON.stringify({ grade: data.assignment.grade, subject: data.assignment.subject, unit, hours }) });
       if (!isCurrent()) return;
-      for (const key of ["title", "objectives", "activities", "assessment", "notes"]) el(fields[key]).value = result.suggestion[key];
+      for (const key of ["title", "objectives", "activities", "student_questions", "assessment", "notes"]) el(fields[key]).value = result.suggestion[key] ?? "";
       el("aiSuggestionStatus").textContent = "AI提案を反映しました。内容を確認・修正して「保存」を押してください。";
     } catch (error) { if (isCurrent()) el("aiSuggestionStatus").textContent = error.message || "AI提案に失敗しました。"; }
     finally {
