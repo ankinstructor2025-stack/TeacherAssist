@@ -33,6 +33,8 @@ async function screen(file, data, options = {}) {
   };
   for (const id of ['hours', 'objectives', 'activities', 'assessment', 'notes']) context.document.getElementById(id);
   vm.createContext(context);
+  context.URL = URL;
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/instruction-links.js'), 'utf8').replace('export function', 'function'), context);
   const shared = fs.readFileSync(path.join(__dirname, '../js/teaching-page.js'), 'utf8').replace(/^import .*;$/gm, '').replace('export async function', 'async function');
   vm.runInContext(shared, context);
   const source = fs.readFileSync(path.join(__dirname, '../js', file), 'utf8').replace(/^import .*;$/gm, '');
@@ -232,4 +234,25 @@ test('failed AI suggestion preserves entered fields and enables retry', async ()
   assert.equal(elements.objectives.value, '入力した目標');
   assert.equal(elements.suggestLessonButton.disabled, false);
   assert.equal(elements.objectives.disabled, false);
+});
+
+const material = { grade: 4, subject: '国語', publisher: '光村図書', title: '4年 年間指導計画', edition: '令和6年度版', url: 'https://example.org/grade4.pdf' };
+test('assignment editor displays material link and clears it after changing subject', async () => {
+  const fixture = { ...data, textbooks: [{ grades: [4], subject: '国語', publisher: '光村図書' }], instruction_materials: [material] };
+  const { elements } = await screen('teaching-subject-edit.js', fixture);
+  elements.grade.value = '4'; elements.subject.value = '国語'; elements.subject.onchange();
+  assert.equal(elements.instructionMaterials.hidden, false);
+  assert.equal(elements.instructionLinks.children[0].href, material.url);
+  assert.equal(elements.instructionLinks.children[0].rel, 'noopener noreferrer');
+  elements.subject.value = '理科'; elements.subject.onchange();
+  assert.equal(elements.instructionLinks.children.length, 0);
+  assert.match(elements.instructionLinks.textContent, /未確認/);
+});
+
+test('assignment list displays publisher materials below textbook name', async () => {
+  const fixture = { ...data, assignments: [{ ...data.assignments[0], instruction_materials: [material] }] };
+  const { elements } = await screen('teaching-subjects.js', fixture);
+  const links = elements.subjectList.children[0].children[2].children[0];
+  assert.equal(links.children[0].href, material.url);
+  assert.match(links.children[0].textContent, /年間指導計画/);
 });

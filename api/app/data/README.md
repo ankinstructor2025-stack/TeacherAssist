@@ -34,3 +34,14 @@ https://www.pref.tochigi.lg.jp/m03/education/gakkoukyouiku/shouchuu/documents/r6
 - 東京書籍の版・単元対照確認：https://ten.tokyo-shoseki.co.jp/text/shou/sansu/data/sansu_shuisho_5.pdf
 
 出版社・学年・科目・適用年度が一致した場合のみ表示する。公開一覧の教材名を単元選択用に整理したもので、教科書紙面の目次・ページ番号の完全な再現ではない。
+
+## 指導計画資料リンク
+
+`instruction_materials.json` に光村図書の国語・東京書籍の算数の令和6年度版1〜6年の年間指導計画等を収録。2026年11月8日確認。
+光村図書の年間指導計画・評価計画資料ページの各学年PDFリンクを確認した。
+https://www.mitsumura-tosho.co.jp/kyokasho/s-kokugo/keikaku
+
+東京書籍は下記の各学年PDFの表紙を確認し、学年・版・細案であることを確認した。末尾の数字が学年。
+https://ten.tokyo-shoseki.co.jp/text/shou/sansu/data/sansu_keikaku_saian_5.pdf
+
+リンクだけを登録し、資料本文は同梱しない。未収録の出版社や適用期間外にはURLを推測して表示しない。

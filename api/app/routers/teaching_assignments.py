@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from ..auth import current_user
 from ..firebase import database
 from ..services.teaching_assignments import assignment_rows, save_assignment, remove_assignment
+from ..services.instruction_materials import instruction_materials
 from .profile import profile_document
 from .teaching_subjects import teaching_subjects
 
@@ -22,7 +23,8 @@ def assignments(response: Response, user: Annotated[dict, Depends(current_user)]
     response.headers["Cache-Control"] = "no-store"
     registration = profile_document(user).to_dict()
     adoption = teaching_subjects(response, user)
-    return {**adoption, "assignments": assignment_rows(registration, adoption["textbooks"])}
+    return {**adoption, "assignments": assignment_rows(registration, adoption["textbooks"]),
+            "instruction_materials": instruction_materials(adoption["textbooks"])}
 
 
 def persist(body, response, user, assignment_id=None):

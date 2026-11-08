@@ -1,5 +1,6 @@
 import { startTeachingPage } from "./teaching-page.js?v=20261108-6";
 import { showError } from "./common.js";
+import { renderInstructionLinks } from "./instruction-links.js";
 
 const el = id => document.getElementById(id);
 const add = document.createElement("a");
@@ -19,6 +20,10 @@ await startTeachingPage("担当科目", { buttons: [add] }, async (data, request
       cell.textContent = text;
       row.append(cell);
     }
+    const materials = document.createElement("div");
+    materials.className = "instruction-links";
+    renderInstructionLinks(materials, assignment.instruction_materials || []);
+    row.children[2].append(materials);
     const actions = document.createElement("td");
     const edit = document.createElement("a");
     edit.className = "btn";

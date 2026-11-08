@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>担当科目修正 | TeacherAssist</title>
-  <link rel="stylesheet" href="../css/theme.css?v=20261108-6">
-  <script type="module" src="../js/teaching-subject-edit.js?v=20261108-6"></script>
+  <link rel="stylesheet" href="../css/theme.css?v=20261108-11">
+  <script type="module" src="../js/teaching-subject-edit.js?v=20261108-11"></script>
 </head>
 <body>
 <main class="management-page">
@@ -19,6 +19,7 @@
         <div><label for="subject">科目</label><select id="subject" required><option value="">科目を選択してください</option></select></div>
       </div>
       <div class="page-footer"><label for="textbook">教科書</label><output id="textbook" class="textbook-output" aria-live="polite">学年と科目を選択してください。</output></div>
+      <section id="instructionMaterials" class="page-footer" hidden aria-labelledby="instructionTitle"><h2 id="instructionTitle">指導計画・評価計画</h2><div id="instructionLinks" class="instruction-links" aria-live="polite"></div></section>
     </form>
   </section>
   <div class="page-footer"><button id="logoutButton" class="btn" type="button">ログアウト</button></div>

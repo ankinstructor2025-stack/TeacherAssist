@@ -135,6 +135,7 @@ select:disabled { opacity: .6; }
 .secret-input { display: flex; align-items: center; gap: 8px; }
 .secret-input input { flex: 1; }
 .secret-input button { flex-shrink: 0; }
+.instruction-links { display: grid; gap: 6px; margin-top: 8px; font-size: 13px; line-height: 1.6; color: #a9b6d4; }
 .profile-school-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,2fr); gap: 12px; }
 @media(max-width:640px) {
   .profile-school-grid { grid-template-columns: 1fr; }

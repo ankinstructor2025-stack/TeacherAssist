@@ -4,6 +4,7 @@ from firebase_admin import firestore
 from fastapi import HTTPException
 
 from ..identity import normalize_email
+from .instruction_materials import instruction_materials
 
 
 @firestore.transactional
@@ -36,7 +37,8 @@ def assignment_rows(registration, textbooks):
             continue
         books = [book for book in textbooks if value["grade"] in book["grades"] and value["subject"] == book["subject"]]
         names = [" ／ ".join(filter(None, [book.get("title"), book["publisher"]])) for book in books]
-        rows.append({"id": key, **value, "textbook": "、".join(names) or "採択情報未連携"})
+        rows.append({"id": key, **value, "textbook": "、".join(names) or "採択情報未連携",
+                     "instruction_materials": instruction_materials(books, value["grade"], value["subject"])})
     return sorted(rows, key=lambda row: (row["grade"], row["subject"]))
 
 

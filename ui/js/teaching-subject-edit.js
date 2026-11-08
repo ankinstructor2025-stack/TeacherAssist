@@ -1,5 +1,6 @@
 import { startTeachingPage } from "./teaching-page.js?v=20261108-6";
 import { showError } from "./common.js";
+import { renderInstructionLinks } from "./instruction-links.js";
 
 const el = id => document.getElementById(id);
 const id = new URLSearchParams(window.location.search).get("id");
@@ -29,6 +30,8 @@ await startTeachingPage(id ? "担当科目修正" : "担当科目登録", { back
     const grade = Number(el("grade").value);
     const subject = el("subject").value;
     const books = data.textbooks.filter(book => book.grades.includes(grade) && book.subject === subject);
+    el("instructionMaterials").hidden = !grade || !subject;
+    renderInstructionLinks(el("instructionLinks"), (data.instruction_materials || []).filter(item => item.grade === grade && item.subject === subject && books.some(book => book.publisher === item.publisher)));
     save.disabled = !hasSchool || !books.length;
     el("textbook").textContent = !grade || !subject ? "学年と科目を選択してください。"
       : books.length ? books.map(book => [book.title, book.publisher].filter(Boolean).join(" ／ ")).join("、")
