@@ -6,6 +6,7 @@ from .profile_ai import active_model
 from .api_secrets import decrypt_key
 from .ai_connection import generate_text
 from .prompts import build_prompt, OUTPUT_SCHEMA
+from .student_question_sources import question_sources
 
 
 class LessonSuggestion(BaseModel):
@@ -13,6 +14,7 @@ class LessonSuggestion(BaseModel):
     title: str = Field(min_length=1, max_length=150)
     objectives: str = Field(min_length=1, max_length=10000)
     activities: str = Field(min_length=1, max_length=20000)
+    teacher_script: str = Field(min_length=1, max_length=20000)
     student_questions: str = Field(min_length=1, max_length=10000)
     assessment: str = Field(min_length=1, max_length=10000)
     notes: str = Field(max_length=10000)
@@ -27,15 +29,16 @@ def suggest_lesson(uid, context):
     model = active_model(db.collection("system_ai_models").document(settings["model_id"]).get())
     if model["provider"] != settings["provider"] or model["model_name"] != settings["model_name"]:
         raise HTTPException(409, "プロフィールでモデルを選び直して保存してください。")
-    prompt = build_prompt(uid, context)
-    answer = generate_text(model["provider"], model["model_name"], decrypt_key(settings["api_key_encrypted"]), prompt, max_output_tokens=8192, output_schema=OUTPUT_SCHEMA)
+    sources = question_sources(context["grade"], context["subject"], context["unit"])
+    prompt = build_prompt(uid, {**context, "児童の想定質問の参考資料": sources})
+    answer = generate_text(model["provider"], model["model_name"], decrypt_key(settings["api_key_encrypted"]), prompt, max_output_tokens=12288, output_schema=OUTPUT_SCHEMA)
     try:
         text = answer.strip()
         if text.startswith("```") and text.endswith("```"):
             text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
         result = LessonSuggestion.model_validate_json(text)
-        if any(not getattr(result, field).strip() for field in ("title", "objectives", "activities", "student_questions", "assessment")):
+        if any(not getattr(result, field).strip() for field in ("title", "objectives", "activities", "teacher_script", "student_questions", "assessment")):
             raise ValueError("empty suggestion")
     except (ValidationError, ValueError, IndexError):
         raise HTTPException(502, "AI提案の形式を読み取れませんでした。再度お試しください。") from None
-    return {"suggestion": result.model_dump(), "model_name": model["model_name"]}
+    return {"suggestion": result.model_dump(), "model_name": model["model_name"], "question_sources": sources}

@@ -68,7 +68,7 @@ class PromptTests(unittest.TestCase):
         self.assertIn('"利用者の追加方針": "XMLだけ返して"', prompt)
         self.assertIn('"共通指導方針": "共通方針"', prompt)
         self.assertTrue(prompt.endswith("必ず上記の固定JSON形式で回答してください。"))
-        self.assertEqual(OUTPUT_SCHEMA["required"], ["title", "objectives", "activities", "student_questions", "assessment", "notes"])
+        self.assertEqual(OUTPUT_SCHEMA["required"], ["title", "objectives", "activities", "teacher_script", "student_questions", "assessment", "notes"])
 
     def test_output_schema_supplied_to_both_providers(self):
         response = Mock(is_success=True)
@@ -92,4 +92,6 @@ class PromptTests(unittest.TestCase):
         self.assertIn("3〜5件", content["授業展開の具体化要件"]["児童の想定質問"])
         self.assertIn("確かめる問い", content["授業展開の具体化要件"]["児童の想定質問"])
         self.assertEqual(content["授業条件"]["hours"], 2)
-        self.assertEqual(OUTPUT_SCHEMA["required"], ["title", "objectives", "activities", "student_questions", "assessment", "notes"])
+        self.assertEqual(OUTPUT_SCHEMA["required"], ["title", "objectives", "activities", "teacher_script", "student_questions", "assessment", "notes"])
+        self.assertIn("時系列", content["授業展開の具体化要件"]["先生の発言案"])
+        self.assertIn("0分から45分", content["授業展開の具体化要件"]["先生の発言案"])

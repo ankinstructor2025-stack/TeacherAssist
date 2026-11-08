@@ -20,7 +20,7 @@ qaplainのシステム用プロンプト一覧・編集と、共通設定／利�
 
 ## 固定する部分
 
-出力の6項目（title、objectives、activities、student_questions、assessment、notes）、文字列型、余分なキーの禁止、教材本文を推測で断定しない規則はコード側で固定する。
+出力の7項目（title、objectives、activities、teacher_script、student_questions、assessment、notes）、文字列型、余分なキーの禁止、教材本文を推測で断定しない規則はコード側で固定する。
 宿題は7項目（title、および beginner/intermediate/advanced の各 questions・answers）を固定する。
 編集画面では固定ルールを参照表示するが保存APIでは変更を受け付けない。
 共通方針・追加方針・授業条件はJSONの設定データとして固定規則に挟んでモデルに渡す。

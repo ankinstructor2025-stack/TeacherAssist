@@ -12,6 +12,7 @@ from .profile import profile_document
 from .teaching_subjects import teaching_subjects
 from ..services.teaching_assignments import assignment_rows
 from ..services.lesson_suggestions import suggest_lesson
+from ..services.student_question_sources import resolve_source_ids
 
 router = APIRouter(prefix="/api/teaching-assignments/{assignment_id}/lesson-plans")
 
@@ -24,7 +25,9 @@ class LessonPlanRequest(BaseModel):
     hours: int = Field(ge=1, le=100, default=1)
     objectives: str = Field(max_length=10000, default="")
     activities: str = Field(max_length=20000, default="")
+    teacher_script: str = Field(max_length=20000, default="")
     student_questions: str = Field(max_length=10000, default="")
+    question_source_ids: list[str] = Field(max_length=10, default_factory=list)
     assessment: str = Field(max_length=10000, default="")
     notes: str = Field(max_length=10000, default="")
 
@@ -79,6 +82,7 @@ def persist(assignment_id, response, user, body=None, plan_id=None, deleting=Fal
     school_code = record.to_dict().get("profile", {}).get("school_code")
     values = body.model_dump() if body else {}
     if body:
+        values["question_sources"] = resolve_source_ids(values.pop("question_source_ids"))
         values["title"] = body.title.strip()
         values["unit"] = body.unit.strip()
         if not values["title"] or not values["unit"]:

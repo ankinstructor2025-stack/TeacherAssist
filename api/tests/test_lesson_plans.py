@@ -134,11 +134,13 @@ class LessonPlanTests(unittest.TestCase):
             self.assertEqual(textbook_contents(assignment, books), [])
 
     def test_question_area_is_saved_separately_and_optional_for_old_clients(self):
-        body = {**self.values, "activities": "授業展開", "student_questions": "児童：なぜ？ 教師：比べよう。"}
+        body = {**self.values, "activities": "授業展開", "teacher_script": "時間：0〜5分\n先生：前の時間を思い出しましょう。", "student_questions": "児童：なぜ？ 教師：比べよう。"}
         with patch("app.routers.lesson_plans.profile_document", return_value=Mock(to_dict=lambda: self.registration)), patch("app.routers.lesson_plans.database"), patch("app.routers.lesson_plans.plan_collection"), patch("app.routers.lesson_plans.store_plan", side_effect=lambda *args: {"id": "plan", **args[6]}) as store:
             result = self.client.post("/api/teaching-assignments/assignment/lesson-plans", json=body)
             self.assertEqual(result.status_code, 201)
             self.assertEqual(result.json()["student_questions"], body["student_questions"])
             self.assertEqual(result.json()["activities"], "授業展開")
+            self.assertEqual(result.json()["teacher_script"], body["teacher_script"])
             self.client.post("/api/teaching-assignments/assignment/lesson-plans", json=self.values)
             self.assertEqual(store.call_args.args[6]["student_questions"], "")
+            self.assertEqual(store.call_args.args[6]["teacher_script"], "")

@@ -27,7 +27,7 @@ async function screen(file, data, options = {}) {
       context.requests ||= [];
       context.requests.push({ url, settings });
       const failure = settings.method ? options.saveFailure : url.endsWith('/profile') ? options.profileFailure : options.failure;
-      const result = url.endsWith('/homework/suggest') ? { suggestion: homeworkSuggestion } : url.endsWith('/suggest') ? { suggestion: { title: 'AIの提案', objectives: '提案した目標', activities: '導入・展開・まとめ', student_questions: '児童：なぜ？ 教師：比べよう。', assessment: '提案した評価', notes: '準備' } } : data;
+      const result = url.endsWith('/homework/suggest') ? { suggestion: homeworkSuggestion } : url.endsWith('/suggest') ? { question_sources: options.questionSources || [], suggestion: { title: 'AIの提案', objectives: '提案した目標', activities: '導入・展開・まとめ', teacher_script: '時間：0〜5分\n先生：前の時間を思い出しましょう。', student_questions: '児童：なぜ？ 教師：比べよう。', assessment: '提案した評価', notes: '準備' } } : data;
       return { ok: !failure, status: failure || 200, json: async () => failure ? { detail: '保存できません。' } : result };
     }
   };
@@ -224,6 +224,7 @@ test('AI suggestion fills editable draft without saving it or marking it as crea
   assert.equal(elements.objectives.value, '提案した目標');
   assert.equal(elements.studentQuestions.value, '児童：なぜ？ 教師：比べよう。');
   assert.equal(elements.activities.value, '導入・展開・まとめ');
+  assert.match(elements.teacherScript.value, /時間：0〜5分/);
   assert.equal(elements.planCreatedAt.textContent, '未作成');
   assert.match(elements.aiSuggestionStatus.textContent, /確認・修正/);
   assert.equal(elements.suggestLessonButton.disabled, false);
@@ -277,6 +278,20 @@ test('older lesson plans keep flow and open empty question area', async () => {
   const { elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
   assert.equal(elements.activities.value, '以前の内容');
   assert.equal(elements.studentQuestions.value, '');
+  assert.equal(elements.teacherScript.value, '');
+});
+
+test('chronological teacher speech is restored and saved separately from questions and flow', async () => {
+  const script = '時間：0〜5分\n場面：導入\n先生：どんな考え方を使えそうですか。\n時間：5〜15分\n場面：個人思考\n先生：図に表してみましょう。';
+  const plan = { id: 'plan', title: '授業', unit: '単元', hours: 1, teacher_script: script, activities: '活動', student_questions: '想定質問' };
+  const { context, elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
+  assert.equal(elements.teacherScript.value, script);
+  elements.teacherScript.value += '\n先生：今日分かったことを振り返りましょう。';
+  await elements.lessonPlanForm.onsubmit({ preventDefault() {} });
+  const body = JSON.parse(context.requests.find(call => call.settings.method === 'PUT').settings.body);
+  assert.equal(body.teacher_script, elements.teacherScript.value);
+  assert.equal(body.student_questions, '想定質問');
+  assert.equal(body.activities, '活動');
 });
 
 const homeworkSuggestion = { title: '整数と小数の宿題', ...Object.fromEntries(['beginner', 'intermediate', 'advanced'].flatMap(level => [[`${level}_questions`, `${level}の問題`], [`${level}_answers`, `${level}の解答`]])) };
@@ -312,4 +327,20 @@ test('homework list and editor restore saved content and update original record'
   assert.equal(elements.advanced_answers.value, 'advancedの解答');
   await elements.homeworkForm.onsubmit({ preventDefault() {} });
   assert.equal(context.requests.find(call => call.settings.method === 'PUT').url, '/api/teaching-assignments/one/homework/saved');
+});
+
+test('question references are displayed, saved, restored and cleared on unit switch', async () => {
+  const reference = { id: 'reviewed', title: '公開指導資料', organization: '教育委員会', url: 'https://example.org/reference.pdf', location: '2ページ', scope: '単元のつまずき', summary: '確認済みの要約' };
+  const { context, elements } = await screen('lesson-plan-edit.js', lessonData, { search: '?assignment=one', questionSources: [reference] });
+  elements.contentsList.children[2].children[0].onclick();
+  await elements.suggestLessonButton.onclick();
+  assert.equal(elements.questionSources.children[0].children[0].href, reference.url);
+  assert.equal(elements.questionSources.children[0].children[2].textContent, reference.summary);
+  await elements.lessonPlanForm.onsubmit({ preventDefault() {} });
+  const save = context.requests.find(call => call.url.endsWith('/lesson-plans') && call.settings.method === 'POST');
+  assert.deepEqual(JSON.parse(save.settings.body).question_source_ids, ['reviewed']);
+  const restored = await screen('lesson-plan-edit.js', { ...lessonData, plans: [{ id: 'saved', unit: '国語五 銀河 ／ 銀色の裏地', question_sources: [reference] }] }, { search: '?assignment=one&id=saved' });
+  assert.equal(restored.elements.questionSources.children.length, 1);
+  restored.elements.contentsList.children[2].children[1].onclick();
+  assert.equal(restored.elements.questionSources.children.length, 0);
 });

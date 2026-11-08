@@ -17,9 +17,26 @@ save.disabled = true;
 
 await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [save], backHref: back, backLabel: "一覧に戻る" }, async (data, request, isCurrent) => {
   el("lessonContext").textContent = `${data.assignment.grade}年 ／ ${data.assignment.subject} ／ ${data.assignment.textbook}`;
-  const fields = { title: "planTitle", unit: "unit", hours: "hours", objectives: "objectives", activities: "activities", student_questions: "studentQuestions", assessment: "assessment", notes: "notes" };
+  const fields = { title: "planTitle", unit: "unit", hours: "hours", objectives: "objectives", activities: "activities", teacher_script: "teacherScript", student_questions: "studentQuestions", assessment: "assessment", notes: "notes" };
   const unitButtons = [];
-  const snapshot = () => JSON.stringify(Object.values(fields).map(field => String(el(field).value)));
+  let questionSources = [];
+  function renderQuestionSources(sources = []) {
+    questionSources = sources;
+    el("questionSources").replaceChildren();
+    el("questionSourcesStatus").textContent = sources.length ? "AI提案に渡した参考資料です。要約を参考に構成した質問と、AIによる補足を質問欄で区別します。" : "この指導案には参考資料の記録がありません。";
+    for (const source of sources) {
+      const item = document.createElement("div");
+      const link = document.createElement("a");
+      link.textContent = `${source.title}（${source.organization}）`;
+      if (source.url?.startsWith("https://")) link.href = source.url;
+      link.target = "_blank"; link.rel = "noopener noreferrer";
+      const detail = document.createElement("p");
+      detail.textContent = `${source.id} ／ ${source.location} ／ ${source.scope}`;
+      const summary = document.createElement("p"); summary.textContent = source.summary;
+      item.append(link, detail, summary); el("questionSources").append(item);
+    }
+  }
+  const snapshot = () => JSON.stringify([Object.values(fields).map(field => String(el(field).value)), questionSources]);
   let baseline;
   let suggesting = false;
   function createdLabel(plan) {
@@ -33,6 +50,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
     currentId = plan?.id || null;
     for (const [key, field] of Object.entries(fields)) el(field).value = plan?.[key] ?? (key === "hours" ? 1 : "");
     if (!plan) { el("unit").value = unit; el("planTitle").value = title; }
+    renderQuestionSources(plan?.question_sources || []);
     el("planCreatedAt").textContent = createdLabel(plan);
     for (const item of unitButtons) item.button.setAttribute("aria-pressed", String(item.unit === el("unit").value));
     baseline = snapshot();
@@ -88,7 +106,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
       el("aiSuggestionStatus").textContent = "単元と時数を入力してください。";
       return;
     }
-    if (["objectives", "activities", "studentQuestions", "assessment", "notes"].some(field => el(field).value.trim()) && !window.confirm("現在の入力をAI提案で置き換えますか？")) return;
+    if (["objectives", "activities", "teacherScript", "studentQuestions", "assessment", "notes"].some(field => el(field).value.trim()) && !window.confirm("現在の入力をAI提案で置き換えますか？")) return;
     suggesting = true;
     suggest.disabled = save.disabled = true;
     suggest.textContent = "提案中…";
@@ -98,7 +116,8 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
     try {
       const result = await request(`${endpoint}/suggest`, { method: "POST", body: JSON.stringify({ grade: data.assignment.grade, subject: data.assignment.subject, unit, hours }) });
       if (!isCurrent()) return;
-      for (const key of ["title", "objectives", "activities", "student_questions", "assessment", "notes"]) el(fields[key]).value = result.suggestion[key] ?? "";
+      for (const key of ["title", "objectives", "activities", "teacher_script", "student_questions", "assessment", "notes"]) el(fields[key]).value = result.suggestion[key] ?? "";
+      renderQuestionSources(result.question_sources || []);
       el("aiSuggestionStatus").textContent = "AI提案を反映しました。内容を確認・修正して「保存」を押してください。";
     } catch (error) { if (isCurrent()) el("aiSuggestionStatus").textContent = error.message || "AI提案に失敗しました。"; }
     finally {
@@ -117,6 +136,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
     const body = Object.fromEntries(Object.entries(fields).map(([key, field]) => [key, key === "hours" ? Number(el(field).value) : el(field).value]));
     body.grade = data.assignment.grade;
     body.subject = data.assignment.subject;
+    body.question_source_ids = questionSources.map(source => source.id);
     save.disabled = true;
     try {
       await request(currentId ? `${endpoint}/${encodeURIComponent(currentId)}` : endpoint, { method: currentId ? "PUT" : "POST", body: JSON.stringify(body) });

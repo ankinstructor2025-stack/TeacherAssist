@@ -18,7 +18,7 @@ class LessonSuggestionTests(unittest.TestCase):
         self.user = {"uid": "teacher", "email": "teacher@example.com"}
         app.dependency_overrides[current_user] = lambda: self.user
         self.context = {"grade": 5, "subject": "算数", "unit": "整数と小数", "hours": 1}
-        self.result = {"title": "整数と小数", "objectives": "目標", "activities": "導入・展開・まとめ", "student_questions": "児童：なぜですか？ 教師：比べてみよう。", "assessment": "評価", "notes": "準備"}
+        self.result = {"title": "整数と小数", "objectives": "目標", "activities": "導入・展開・まとめ", "teacher_script": "時間：0〜5分\n場面：導入\n先生：前の時間を思い出しましょう。", "student_questions": "児童：なぜですか？ 教師：比べてみよう。", "assessment": "評価", "notes": "準備"}
 
     def tearDown(self):
         self.prompt_patch.stop()
@@ -50,6 +50,10 @@ class LessonSuggestionTests(unittest.TestCase):
             self.assertEqual(result["suggestion"], self.result)
             self.assertEqual(generate.call_args.args[:3], ("gemini", "example", "test-only-key"))
             self.assertNotIn("test-only-key", generate.call_args.args[3])
+            sources = result["question_sources"]
+            self.assertTrue(any(item["id"] == "nier-2025-decimal-v1" for item in sources))
+            self.assertIn("0.01を共通の単位", generate.call_args.args[3])
+            self.assertIn("AI補足", generate.call_args.args[3])
             db.transaction.assert_not_called()
 
     def test_missing_settings_and_invalid_ai_output_fail_without_draft(self):
