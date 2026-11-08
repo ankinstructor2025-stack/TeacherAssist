@@ -152,6 +152,20 @@ textarea { display: block; width: 100%; border: 1px solid var(--input-border); b
 .contents-panel button { margin: 4px; font-size: 14px; font-weight: 400; text-align: left; }
 .contents-list { max-height: 300px; overflow-y: auto; padding: 16px 0; }
 .contents-list h3 { margin-top: 16px; font-size: 16px; }
+.lesson-editor-page { max-width: 1500px; }
+.lesson-workspace { display: grid; grid-template-columns: minmax(260px,320px) minmax(0,1fr); gap: 28px; align-items: start; }
+.lesson-sidebar { min-width: 0; padding-right: 20px; border-right: 1px solid var(--card-border); }
+.lesson-sidebar .contents-list { max-height: 70vh; }
+.lesson-unit-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 24px; }
+.lesson-unit { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; padding: 12px; font-weight: 400; }
+.lesson-unit[aria-pressed="true"] { background: rgba(37,99,235,.2); border-color: #60a5fa; }
+.lesson-unit-date { color: #a9b6d4; font-size: 12px; }
+.lesson-created-at { margin: 0; color: #a9b6d4; }
+@media(max-width:800px) {
+  .lesson-workspace { grid-template-columns: 1fr; }
+  .lesson-sidebar { border-right: 0; border-bottom: 1px solid var(--card-border); padding: 0 0 20px; }
+  .lesson-sidebar .contents-list { max-height: 300px; }
+}
 .page-toolbar { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 20px; margin-bottom: 20px; }
 .page-toolbar-title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
 .page-toolbar-main { display: grid; grid-template-columns: minmax(80px,1fr) minmax(90px,1fr) minmax(140px,2fr); gap: 10px; margin: 0; min-width: 0; }

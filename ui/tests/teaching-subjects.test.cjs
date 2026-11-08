@@ -177,3 +177,34 @@ test('unsupported contents allow manual lesson unit entry without invented chapt
   assert.match(elements.contentsStatus.textContent, /未対応/);
   assert.equal(buttons[0].disabled, false);
 });
+
+test('unit sidebar displays creation date in Japan and uncreated status', async () => {
+  const plan = { id: 'plan', title: '保存済み', unit: '国語五 銀河 ／ 銀色の裏地', hours: 1, created_at: '2026-11-07T16:00:00+00:00', activities: '保存した展開' };
+  const { context, elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one' });
+  const units = elements.contentsList.children[2].children;
+  assert.equal(units[0].children[1].textContent, '作成日：2026/11/08');
+  assert.equal(units[1].children[1].textContent, '未作成');
+  units[0].onclick();
+  assert.equal(elements.activities.value, '保存した展開');
+  assert.equal(elements.planCreatedAt.textContent, '作成日：2026/11/08');
+  await elements.lessonPlanForm.onsubmit({ preventDefault() {} });
+  assert.equal(context.requests.find(request => request.settings.method === 'PUT').url, '/api/teaching-assignments/one/lesson-plans/plan');
+});
+
+test('switching to an uncreated unit clears the previous lesson fields', async () => {
+  const plan = { id: 'plan', title: '保存済み', unit: '国語五 銀河 ／ 銀色の裏地', hours: 3, activities: '保存した展開' };
+  const { context, elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
+  elements.contentsList.children[2].children[1].onclick();
+  assert.equal(elements.activities.value, '');
+  assert.equal(elements.planCreatedAt.textContent, '未作成');
+  assert.equal(elements.planTitle.value, '大造じいさんとガン');
+  await elements.lessonPlanForm.onsubmit({ preventDefault() {} });
+  assert.ok(context.requests.find(request => request.settings.method === 'POST'));
+});
+
+test('legacy saved plans are never incorrectly marked as uncreated', async () => {
+  const plan = { id: 'plan', title: '保存済み', unit: '国語五 銀河 ／ 銀色の裏地', hours: 1 };
+  const { elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
+  assert.equal(elements.contentsList.children[2].children[0].children[1].textContent, '作成済み（作成日不明）');
+  assert.equal(elements.planCreatedAt.textContent, '作成済み（作成日不明）');
+});

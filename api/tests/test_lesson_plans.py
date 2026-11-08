@@ -30,6 +30,8 @@ class LessonPlanTests(unittest.TestCase):
         result = store_plan.to_wrap(transaction, self.reference, plans, self.user["email"], "assignment", "school", self.values)
         self.assertEqual(result["title"], self.values["title"])
         self.assertEqual(result["assignment_id"], "assignment")
+        self.assertTrue(result["created_at"])
+        self.assertEqual(result["created_at"], result["updated_at"])
         transaction.set.assert_called_once()
         self.assertTrue(transaction.update.call_args.args[1]["teaching_assignments"]["assignment"]["has_lesson_plans"])
 
@@ -66,6 +68,21 @@ class LessonPlanTests(unittest.TestCase):
         result = store_plan.to_wrap(transaction, self.reference, plans, self.user["email"], "assignment", "school", {}, "plan", True)
         self.assertTrue(result["deleted"])
         self.assertEqual(result["title"], old["title"])
+
+    def test_update_keeps_original_creation_date(self):
+        plans = Mock()
+        old = {**self.values, "assignment_id": "assignment", "school_code": "school", "created_at": "2026-11-01T03:00:00+00:00"}
+        plans.document.return_value.get.return_value = Mock(exists=True, to_dict=lambda: old)
+        result = store_plan.to_wrap(Mock(), self.reference, plans, self.user["email"], "assignment", "school", self.values, "plan")
+        self.assertEqual(result["created_at"], old["created_at"])
+        self.assertNotEqual(result["updated_at"], old["created_at"])
+
+    def test_legacy_plan_update_does_not_invent_creation_date(self):
+        plans = Mock()
+        old = {**self.values, "assignment_id": "assignment", "school_code": "school"}
+        plans.document.return_value.get.return_value = Mock(exists=True, to_dict=lambda: old)
+        result = store_plan.to_wrap(Mock(), self.reference, plans, self.user["email"], "assignment", "school", self.values, "plan")
+        self.assertIsNone(result["created_at"])
 
     def test_assignment_delete_hides_it_without_removing_saved_data(self):
         transaction = Mock()

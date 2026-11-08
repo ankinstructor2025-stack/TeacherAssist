@@ -31,8 +31,10 @@ def store_plan(transaction, registration_ref, plans, email, assignment_id, schoo
     old = previous.to_dict() if previous is not None and previous.exists else {}
     if plan_id and (not old or old.get("deleted") or old.get("assignment_id") != assignment_id or old.get("school_code") != school_code):
         raise HTTPException(404, "指導案が見つかりません。")
+    now = datetime.now(timezone.utc).isoformat()
     stored = {**old, **values, "assignment_id": assignment_id, "school_code": school_code,
-              "updated_at": datetime.now(timezone.utc).isoformat(), "deleted": deleting}
+              "created_at": old.get("created_at") if plan_id else now,
+              "updated_at": now, "deleted": deleting}
     transaction.set(target, stored)
     assignments = dict(data["teaching_assignments"])
     assignments[assignment_id] = {**assignment, "has_lesson_plans": True}

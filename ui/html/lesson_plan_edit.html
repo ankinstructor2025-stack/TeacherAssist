@@ -4,21 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>指導案編集 | TeacherAssist</title>
-  <link rel="stylesheet" href="../css/theme.css?v=20261108-6">
-  <script type="module" src="../js/lesson-plan-edit.js?v=20261108-6"></script>
+  <link rel="stylesheet" href="../css/theme.css?v=20261108-7">
+  <script type="module" src="../js/lesson-plan-edit.js?v=20261108-7"></script>
 </head>
 <body>
-<main class="management-page">
+<main class="management-page lesson-editor-page">
   <header id="schoolToolbar" class="page-toolbar"></header>
   <p id="status" role="status">ログイン情報を確認しています…</p>
   <section id="content" class="card" hidden aria-label="指導案編集">
     <p id="lessonContext" class="lesson-context"></p>
-    <details class="contents-panel" open>
-      <summary>教科書の目次（公開単元・教材一覧）</summary>
+    <div class="lesson-workspace">
+    <aside class="lesson-sidebar" aria-labelledby="contentsTitle">
+      <h2 id="contentsTitle">単元・教材一覧</h2>
       <div id="contentsList" class="contents-list"></div>
       <p id="contentsStatus" role="status"></p>
-    </details>
+    </aside>
     <form id="lessonPlanForm" class="lesson-fields">
+      <p id="planCreatedAt" class="lesson-created-at" role="status">未作成</p>
       <div><label for="planTitle">指導案名</label><input id="planTitle" required maxlength="150"></div>
       <div class="form-grid">
         <div><label for="unit">単元・教材名</label><input id="unit" required maxlength="200"><small>目次の項目を押すと入力されます。直接入力もできます。</small></div>
@@ -29,6 +31,7 @@
       <div><label for="assessment">評価の観点・方法</label><textarea id="assessment" rows="4" maxlength="10000"></textarea></div>
       <div><label for="notes">教材・準備・備考</label><textarea id="notes" rows="4" maxlength="10000"></textarea></div>
     </form>
+    </div>
   </section>
   <div class="page-footer"><button id="logoutButton" class="btn" type="button">ログアウト</button></div>
   <p id="error" class="error" role="alert"></p>
