@@ -2,7 +2,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { initializeAuth } from "./firebase-config.js";
 import { loadSession, showError } from "./common.js";
 import { API_BASE_URL } from "./config.js";
-import { mountSchoolToolbar } from "./school-toolbar.js?v=20261108-4";
+import { mountSchoolToolbar } from "./school-toolbar.js?v=20261108-5";
 
 export async function startTeachingPage(title, toolbar, onReady) {
   const el = id => document.getElementById(id);
@@ -14,19 +14,29 @@ export async function startTeachingPage(title, toolbar, onReady) {
     };
     onAuthStateChanged(auth, async user => {
       el("content").hidden = true;
-      updateToolbar({});
+      updateToolbar(null, "確認中…");
       if (!user) { window.location.replace("../index.html"); return; }
       const isCurrent = () => auth.currentUser === user;
+      let profileLoaded = false;
       async function request(path, settings = {}) {
         const response = await fetch(`${API_BASE_URL}${path}`, { ...settings, cache: "no-store", headers: { Authorization: `Bearer ${await user.getIdToken()}`, "Content-Type": "application/json" } });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw Object.assign(new Error(typeof data.detail === "string" ? data.detail : "担当科目を取得・保存できませんでした。"), { status: response.status });
+        if (!response.ok) {
+          const message = response.status === 404 && path === "/teaching-assignments"
+            ? "担当科目のAPIが見つかりません。公開更新が完了してから再読み込みしてください。"
+            : typeof data.detail === "string" ? data.detail : "担当科目を取得・保存できませんでした。";
+          throw Object.assign(new Error(message), { status: response.status });
+        }
         return data;
       }
       try {
         const session = await loadSession(user);
         if (!isCurrent()) return;
         if (session.is_system_administrator) { window.location.replace("system_menu.html"); return; }
+        const { profile } = await request("/profile");
+        if (!isCurrent()) return;
+        updateToolbar(profile);
+        profileLoaded = true;
         const data = await request("/teaching-assignments");
         if (!isCurrent()) return;
         updateToolbar(data.profile);
@@ -36,6 +46,7 @@ export async function startTeachingPage(title, toolbar, onReady) {
         el("content").hidden = false;
       } catch (error) {
         if (!isCurrent()) return;
+        if (!profileLoaded) updateToolbar(null, "取得できません");
         el("status").textContent = "担当科目を表示できませんでした。";
         showError(error);
         if (error.status === 401 || error.status === 403) await signOut(auth).catch(() => {});

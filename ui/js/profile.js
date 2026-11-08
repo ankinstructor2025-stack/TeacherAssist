@@ -2,10 +2,8 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { initializeAuth } from "./firebase-config.js";
 import { loadSession, showError } from "./common.js";
 import { API_BASE_URL } from "./config.js";
-import { mountSchoolToolbar } from "./school-toolbar.js";
 import { renderTextbookRows } from "./textbook-list.js";
 
-const updateToolbar = mountSchoolToolbar("プロフィール");
 const el = id => document.getElementById(id);
 const prefecture = el("prefecture");
 const city = el("city");
@@ -83,7 +81,6 @@ try {
       const [catalog, result] = await Promise.all([request("/schools"), request("/profile")]);
       if (auth.currentUser !== user) return;
       const profile = result.profile;
-      updateToolbar(profile);
       options(prefecture, catalog.prefectures.map(value => ({ value, label: value })), "都道府県を選択してください", profile.prefecture || "");
       if (prefecture.value) await loadCities(profile.city || "");
       if (city.value) await loadSchools(profile.school_code || "");
@@ -98,7 +95,6 @@ try {
         try {
           const result = await request("/profile", { method: "PUT", body: JSON.stringify({ school_code: school.value }) });
           if (auth.currentUser !== user) return;
-          updateToolbar(result.profile);
           el("error").textContent = ""; el("status").textContent = "プロフィールを登録しました。";
           await loadTextbooks(result.profile);
         } catch (error) { showError(error); }

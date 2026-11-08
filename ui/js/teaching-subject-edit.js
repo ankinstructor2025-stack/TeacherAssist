@@ -1,4 +1,4 @@
-import { startTeachingPage } from "./teaching-page.js";
+import { startTeachingPage } from "./teaching-page.js?v=20261108-5";
 import { showError } from "./common.js";
 
 const el = id => document.getElementById(id);

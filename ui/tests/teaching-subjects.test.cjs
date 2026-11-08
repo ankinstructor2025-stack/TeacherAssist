@@ -26,7 +26,7 @@ async function screen(file, data, options = {}) {
     fetch: async (url, settings) => {
       context.requests ||= [];
       context.requests.push({ url, settings });
-      const failure = settings.method ? options.saveFailure : options.failure;
+      const failure = settings.method ? options.saveFailure : url.endsWith('/profile') ? options.profileFailure : options.failure;
       return { ok: !failure, status: failure || 200, json: async () => failure ? { detail: '保存できません。' } : data };
     }
   };
@@ -67,7 +67,7 @@ test('editor displays textbook after both choices and saves then returns to list
   assert.equal(elements.textbook.textContent, '光村図書');
   assert.equal(buttons[0].disabled, false);
   await elements.assignmentForm.onsubmit({ preventDefault() {} });
-  const save = context.requests[1];
+  const save = context.requests.find(request => request.settings.method === 'POST');
   assert.equal(save.url, '/api/teaching-assignments');
   assert.equal(save.settings.method, 'POST');
   assert.deepEqual(JSON.parse(save.settings.body), { grade: 1, subject: '国語' });
@@ -78,8 +78,9 @@ test('existing assignment restores fields and updates original ID', async () => 
   assert.equal(elements.grade.value, '4');
   assert.equal(elements.subject.value, '国語');
   await elements.assignmentForm.onsubmit({ preventDefault() {} });
-  assert.equal(context.requests[1].url, '/api/teaching-assignments/one');
-  assert.equal(context.requests[1].settings.method, 'PUT');
+  const save = context.requests.find(request => request.settings.method === 'PUT');
+  assert.equal(save.url, '/api/teaching-assignments/one');
+  assert.equal(save.settings.method, 'PUT');
 });
 test('save failure keeps editor open for retry', async () => {
   const { context, elements, buttons } = await screen('teaching-subject-edit.js', data, { search: '?id=one', saveFailure: 409 });
@@ -105,4 +106,12 @@ test('anonymous, administrator and rejected access keep existing routing', async
   const rejected = await screen('teaching-subjects.js', data, { failure: 403 });
   assert.equal(rejected.elements.content.hidden, true);
   assert.equal(rejected.context.signedOut, true);
+});
+
+test('assignment API failure preserves saved school in toolbar', async () => {
+  const { context, elements } = await screen('teaching-subjects.js', data, { failure: 404 });
+  assert.equal(context.profile, data.profile);
+  assert.equal(elements.content.hidden, true);
+  assert.match(context.error, /公開更新/);
+  assert.equal(context.requests[0].url, '/api/profile');
 });

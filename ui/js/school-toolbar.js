@@ -27,9 +27,9 @@ export function mountSchoolToolbar(title, { backHref = "home.html", backLabel = 
   actions.append(...buttons);
   actions.append(back);
   toolbar.replaceChildren(heading, fields, actions);
-  return profile => {
+  return (profile, placeholder = "未登録") => {
     for (const value of fields.querySelectorAll("[data-profile-field]")) {
-      value.textContent = profile[value.dataset.profileField] || "未登録";
+      value.textContent = profile?.[value.dataset.profileField] || placeholder;
     }
   };
 }
