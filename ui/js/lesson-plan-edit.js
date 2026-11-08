@@ -1,5 +1,6 @@
 import { startTeachingPage } from "./teaching-page.js?v=20261108-6";
 import { showError } from "./common.js";
+import { mountDialogueView } from "./dialogue-view.js?v=20261108-19";
 
 const el = id => document.getElementById(id);
 const params = new URLSearchParams(window.location.search);
@@ -20,6 +21,8 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
   const fields = { title: "planTitle", unit: "unit", hours: "hours", objectives: "objectives", activities: "activities", teacher_script: "teacherScript", student_questions: "studentQuestions", assessment: "assessment", notes: "notes" };
   const unitButtons = [];
   let questionSources = [];
+  const refreshTeacher = mountDialogueView(el("teacherScript"), el("teacherScriptPreview"), el("teacherScriptToggle"));
+  const refreshQuestions = mountDialogueView(el("studentQuestions"), el("studentQuestionsPreview"), el("studentQuestionsToggle"), () => questionSources);
   function renderQuestionSources(sources = []) {
     questionSources = sources;
     el("questionSources").replaceChildren();
@@ -51,6 +54,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
     for (const [key, field] of Object.entries(fields)) el(field).value = plan?.[key] ?? (key === "hours" ? 1 : "");
     if (!plan) { el("unit").value = unit; el("planTitle").value = title; }
     renderQuestionSources(plan?.question_sources || []);
+    refreshTeacher(); refreshQuestions();
     el("planCreatedAt").textContent = createdLabel(plan);
     for (const item of unitButtons) item.button.setAttribute("aria-pressed", String(item.unit === el("unit").value));
     baseline = snapshot();
@@ -110,6 +114,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
     suggesting = true;
     suggest.disabled = save.disabled = true;
     suggest.textContent = "提案中…";
+    el("teacherScriptToggle").disabled = el("studentQuestionsToggle").disabled = true;
     for (const field of Object.values(fields)) el(field).disabled = true;
     for (const item of unitButtons) item.button.disabled = true;
     el("aiSuggestionStatus").textContent = "プロフィールのモデルで指導案を提案しています…";
@@ -118,6 +123,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
       if (!isCurrent()) return;
       for (const key of ["title", "objectives", "activities", "teacher_script", "student_questions", "assessment", "notes"]) el(fields[key]).value = result.suggestion[key] ?? "";
       renderQuestionSources(result.question_sources || []);
+      refreshTeacher(); refreshQuestions();
       el("aiSuggestionStatus").textContent = "AI提案を反映しました。内容を確認・修正して「保存」を押してください。";
     } catch (error) { if (isCurrent()) el("aiSuggestionStatus").textContent = error.message || "AI提案に失敗しました。"; }
     finally {
@@ -125,6 +131,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
         suggesting = false;
         suggest.disabled = save.disabled = false;
         suggest.textContent = "AI提案";
+        el("teacherScriptToggle").disabled = el("studentQuestionsToggle").disabled = false;
         for (const field of Object.values(fields)) el(field).disabled = false;
         for (const item of unitButtons) item.button.disabled = false;
       }

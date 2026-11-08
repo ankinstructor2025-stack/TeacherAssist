@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>指導案編集 | TeacherAssist</title>
-  <link rel="stylesheet" href="../css/theme.css?v=20261108-18">
-  <script type="module" src="../js/lesson-plan-edit.js?v=20261108-16"></script>
+  <link rel="stylesheet" href="../css/theme.css?v=20261108-20">
+  <script type="module" src="../js/lesson-plan-edit.js?v=20261108-19"></script>
 </head>
 <body>
-<main class="management-page lesson-editor-page">
+<main class="management-page lesson-editor-page lesson-editor-wide">
   <header id="schoolToolbar" class="page-toolbar"></header>
   <p id="status" role="status">ログイン情報を確認しています…</p>
   <section id="content" class="card" hidden aria-label="指導案編集">
@@ -32,14 +32,16 @@
       <div class="lesson-dialogue-scroll" role="region" aria-label="先生の発言案と児童の想定質問" tabindex="0">
       <div class="lesson-flow-columns">
       <section class="lesson-question-panel lesson-flow-panel" aria-labelledby="teacherScriptTitle">
-        <h2 id="teacherScriptTitle">先生の発言案（時系列）</h2>
-        <p>授業の流れに沿って、時間・場面・先生の言葉を順に並べます。授業に合わせて修正できます。</p>
+        <div class="dialogue-heading"><h2 id="teacherScriptTitle">先生の発言案</h2><button id="teacherScriptToggle" type="button" class="btn" aria-controls="teacherScript">文章を修正</button></div>
+        <p>時間・場面ごとに、授業の進行順で表示します。</p>
+        <div id="teacherScriptPreview" class="dialogue-preview"></div>
         <label for="teacherScript">時間・場面・先生の発言</label>
         <textarea id="teacherScript" rows="18" maxlength="20000" placeholder="時間：0〜5分&#10;場面：導入&#10;先生：前の時間に学んだことを思い出しましょう。"></textarea>
       </section>
       <section class="lesson-question-panel lesson-flow-panel" aria-labelledby="studentQuestionsTitle">
-        <h2 id="studentQuestionsTitle">児童の想定質問・返答例</h2>
-        <p>授業中に出そうな疑問や誤解と、それに対する教師の返答・確かめる問いを整理します。</p>
+        <div class="dialogue-heading"><h2 id="studentQuestionsTitle">想定質問・返答例</h2><button id="studentQuestionsToggle" type="button" class="btn" aria-controls="studentQuestions">文章を修正</button></div>
+        <p>児童の質問、先生の返答、確かめる問いを区別します。</p>
+        <div id="studentQuestionsPreview" class="dialogue-preview"></div>
         <label for="studentQuestions">場面・児童の質問・教師の返答・確かめる問い</label>
         <textarea id="studentQuestions" rows="12" maxlength="10000"></textarea>
         <details><summary>想定質問の参考資料</summary><p id="questionSourcesStatus" role="status"></p><div id="questionSources"></div></details>

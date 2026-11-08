@@ -33,6 +33,7 @@ async function screen(file, data, options = {}) {
   };
   for (const id of ['hours', 'objectives', 'activities', 'studentQuestions', 'assessment', 'notes']) context.document.getElementById(id);
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/dialogue-view.js'), 'utf8').replace('export function', 'function'), context);
   context.URL = URL;
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/instruction-links.js'), 'utf8').replace('export function', 'function'), context);
   const shared = fs.readFileSync(path.join(__dirname, '../js/teaching-page.js'), 'utf8').replace(/^import .*;$/gm, '').replace('export async function', 'async function');
@@ -292,6 +293,26 @@ test('chronological teacher speech is restored and saved separately from questio
   assert.equal(body.teacher_script, elements.teacherScript.value);
   assert.equal(body.student_questions, '想定質問');
   assert.equal(body.activities, '活動');
+});
+
+test('dialogue reading view separates parts and speakers while keeping original editable text', async () => {
+  const script = '時間：0〜5分 場面：導入 先生：前の時間を思い出そう。\n時間：5〜15分 場面：展開 先生：図に表そう。';
+  const questions = '場面：導入\n児童：なぜ？\n教師：比べよう。\n確かめる問い：何が違う？\n\n場面：展開\n児童：これでいい？\n教師：図で確認しよう。';
+  const plan = { id: 'plan', unit: '単元', teacher_script: script, student_questions: questions };
+  const { elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
+  assert.equal(elements.teacherScript.hidden, true);
+  assert.equal(elements.teacherScriptPreview.children.length, 2);
+  assert.equal(elements.studentQuestionsPreview.children.length, 2);
+  assert.equal(elements.teacherScriptPreview.children[0].children[0].textContent, 'パート 1');
+  assert.ok(elements.studentQuestionsPreview.children[0].children.some(row => row.className === 'dialogue-line dialogue-student'));
+  elements.teacherScriptToggle.onclick();
+  assert.equal(elements.teacherScript.hidden, false);
+  assert.equal(elements.teacherScriptPreview.hidden, true);
+  assert.equal(elements.teacherScript.value, script);
+  elements.teacherScript.value = '時間：0〜5分 場面：導入 先生：修正した言葉';
+  elements.teacherScriptToggle.onclick();
+  assert.equal(elements.teacherScriptPreview.children.length, 1);
+  assert.equal(elements.teacherScript.value, '時間：0〜5分 場面：導入 先生：修正した言葉');
 });
 
 const homeworkSuggestion = { title: '整数と小数の宿題', ...Object.fromEntries(['beginner', 'intermediate', 'advanced'].flatMap(level => [[`${level}_questions`, `${level}の問題`], [`${level}_answers`, `${level}の解答`]])) };
