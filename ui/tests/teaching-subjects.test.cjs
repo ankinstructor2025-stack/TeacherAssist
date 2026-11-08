@@ -27,7 +27,8 @@ async function screen(file, data, options = {}) {
       context.requests ||= [];
       context.requests.push({ url, settings });
       const failure = settings.method ? options.saveFailure : url.endsWith('/profile') ? options.profileFailure : options.failure;
-      return { ok: !failure, status: failure || 200, json: async () => failure ? { detail: '保存できません。' } : data };
+      const result = url.endsWith('/suggest') ? { suggestion: { title: 'AIの提案', objectives: '提案した目標', activities: '導入・展開・まとめ', assessment: '提案した評価', notes: '準備' } } : data;
+      return { ok: !failure, status: failure || 200, json: async () => failure ? { detail: '保存できません。' } : result };
     }
   };
   for (const id of ['hours', 'objectives', 'activities', 'assessment', 'notes']) context.document.getElementById(id);
@@ -207,4 +208,28 @@ test('legacy saved plans are never incorrectly marked as uncreated', async () =>
   const { elements } = await screen('lesson-plan-edit.js', { ...lessonData, plans: [plan] }, { search: '?assignment=one&id=plan' });
   assert.equal(elements.contentsList.children[2].children[0].children[1].textContent, '作成済み（作成日不明）');
   assert.equal(elements.planCreatedAt.textContent, '作成済み（作成日不明）');
+});
+
+test('AI suggestion fills editable draft without saving it or marking it as created', async () => {
+  const { context, elements } = await screen('lesson-plan-edit.js', lessonData, { search: '?assignment=one' });
+  elements.contentsList.children[2].children[0].onclick();
+  await elements.suggestLessonButton.onclick();
+  const calls = context.requests.filter(request => request.settings.method === 'POST');
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, '/api/teaching-assignments/one/lesson-plans/suggest');
+  assert.equal(JSON.parse(calls[0].settings.body).subject, '国語');
+  assert.equal(elements.objectives.value, '提案した目標');
+  assert.equal(elements.planCreatedAt.textContent, '未作成');
+  assert.match(elements.aiSuggestionStatus.textContent, /確認・修正/);
+  assert.equal(elements.suggestLessonButton.disabled, false);
+});
+
+test('failed AI suggestion preserves entered fields and enables retry', async () => {
+  const { elements } = await screen('lesson-plan-edit.js', lessonData, { search: '?assignment=one', saveFailure: 502 });
+  elements.contentsList.children[2].children[0].onclick();
+  elements.objectives.value = '入力した目標';
+  await elements.suggestLessonButton.onclick();
+  assert.equal(elements.objectives.value, '入力した目標');
+  assert.equal(elements.suggestLessonButton.disabled, false);
+  assert.equal(elements.objectives.disabled, false);
 });

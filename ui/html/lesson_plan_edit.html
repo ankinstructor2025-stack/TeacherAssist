@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>指導案編集 | TeacherAssist</title>
-  <link rel="stylesheet" href="../css/theme.css?v=20261108-7">
-  <script type="module" src="../js/lesson-plan-edit.js?v=20261108-7"></script>
+  <link rel="stylesheet" href="../css/theme.css?v=20261108-9">
+  <script type="module" src="../js/lesson-plan-edit.js?v=20261108-9"></script>
 </head>
 <body>
 <main class="management-page lesson-editor-page">
@@ -20,7 +20,8 @@
       <p id="contentsStatus" role="status"></p>
     </aside>
     <form id="lessonPlanForm" class="lesson-fields">
-      <p id="planCreatedAt" class="lesson-created-at" role="status">未作成</p>
+      <div class="lesson-edit-actions"><p id="planCreatedAt" class="lesson-created-at" role="status">未作成</p><button id="suggestLessonButton" class="btn btn-primary" type="button" disabled>AI提案</button></div>
+      <p id="aiSuggestionStatus" role="status" aria-live="polite"></p>
       <div><label for="planTitle">指導案名</label><input id="planTitle" required maxlength="150"></div>
       <div class="form-grid">
         <div><label for="unit">単元・教材名</label><input id="unit" required maxlength="200"><small>目次の項目を押すと入力されます。直接入力もできます。</small></div>

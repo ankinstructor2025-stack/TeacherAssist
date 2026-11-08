@@ -164,6 +164,9 @@ textarea { display: block; width: 100%; border: 1px solid var(--input-border); b
 .lesson-unit[aria-pressed="true"] { background: rgba(37,99,235,.2); border-color: #60a5fa; }
 .lesson-unit-date { color: #a9b6d4; font-size: 12px; }
 .lesson-created-at { margin: 0; color: #a9b6d4; }
+.lesson-edit-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+#aiSuggestionStatus { margin: 0; }
+#aiSuggestionStatus:empty { display: none; }
 @media(max-width:800px) {
   .lesson-workspace { grid-template-columns: 1fr; }
   .lesson-sidebar { border-right: 0; border-bottom: 1px solid var(--card-border); padding: 0 0 20px; }

@@ -11,6 +11,7 @@ from ..services.textbook_contents import textbook_contents
 from .profile import profile_document
 from .teaching_subjects import teaching_subjects
 from ..services.teaching_assignments import assignment_rows
+from ..services.lesson_suggestions import suggest_lesson
 
 router = APIRouter(prefix="/api/teaching-assignments/{assignment_id}/lesson-plans")
 
@@ -25,6 +26,31 @@ class LessonPlanRequest(BaseModel):
     activities: str = Field(max_length=20000, default="")
     assessment: str = Field(max_length=10000, default="")
     notes: str = Field(max_length=10000, default="")
+
+
+class SuggestionRequest(BaseModel):
+    grade: int = Field(ge=1, le=6)
+    subject: str = Field(min_length=1, max_length=20)
+    unit: str = Field(min_length=1, max_length=200)
+    hours: int = Field(ge=1, le=100)
+
+
+@router.post("/suggest")
+def suggest_plan(assignment_id: str, body: SuggestionRequest, response: Response, user: Annotated[dict, Depends(current_user)]):
+    response.headers["Cache-Control"] = "no-store"
+    registration = profile_document(user).to_dict()
+    assignment = active_assignment(registration, assignment_id)
+    if body.grade != assignment["grade"] or body.subject != assignment["subject"]:
+        raise HTTPException(409, "担当科目が変更されました。再読み込みしてください。")
+    if not body.unit.strip():
+        raise HTTPException(422, "単元を選択または入力してください。")
+    adoption = teaching_subjects(response, user)
+    if adoption["profile"].get("school_code") != assignment["school_code"]:
+        raise HTTPException(409, "所属校が変更されました。再読み込みしてください。")
+    books = [book for book in adoption["textbooks"] if assignment["grade"] in book["grades"] and book["subject"] == assignment["subject"]]
+    context = {"grade": assignment["grade"], "subject": assignment["subject"], "unit": body.unit.strip(), "hours": body.hours,
+               "publishers": [book["publisher"] for book in books]}
+    return suggest_lesson(user["uid"], context)
 
 
 def plan_collection(user):

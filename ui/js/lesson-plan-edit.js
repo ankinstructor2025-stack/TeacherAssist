@@ -21,6 +21,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
   const unitButtons = [];
   const snapshot = () => JSON.stringify(Object.values(fields).map(field => String(el(field).value)));
   let baseline;
+  let suggesting = false;
   function createdLabel(plan) {
     if (!plan) return "未作成";
     const date = plan.created_at ? new Date(plan.created_at) : null;
@@ -61,6 +62,7 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
       date.textContent = plans.length ? [...new Set(plans.map(createdLabel))].join("、") : "未作成";
       button.append(label, date);
       button.onclick = () => {
+        if (suggesting) return;
         if (baseline !== snapshot() && !window.confirm("保存していない変更があります。単元を切り替えますか？")) return;
         loadPlan(plans[0], unitKey, unit);
       };
@@ -76,6 +78,39 @@ await startTeachingPage(id ? "指導案修正" : "指導案作成", { buttons: [
     loadPlan(plan);
   } else loadPlan(null);
   save.disabled = false;
+  const suggest = el("suggestLessonButton");
+  suggest.disabled = false;
+  suggest.onclick = async () => {
+    if (!isCurrent() || suggesting || save.disabled) return;
+    const unit = el("unit").value.trim();
+    const hours = Number(el("hours").value);
+    if (!unit || !Number.isInteger(hours) || hours < 1 || hours > 100) {
+      el("aiSuggestionStatus").textContent = "単元と時数を入力してください。";
+      return;
+    }
+    if (["objectives", "activities", "assessment", "notes"].some(field => el(field).value.trim()) && !window.confirm("現在の入力をAI提案で置き換えますか？")) return;
+    suggesting = true;
+    suggest.disabled = save.disabled = true;
+    suggest.textContent = "提案中…";
+    for (const field of Object.values(fields)) el(field).disabled = true;
+    for (const item of unitButtons) item.button.disabled = true;
+    el("aiSuggestionStatus").textContent = "プロフィールのモデルで指導案を提案しています…";
+    try {
+      const result = await request(`${endpoint}/suggest`, { method: "POST", body: JSON.stringify({ grade: data.assignment.grade, subject: data.assignment.subject, unit, hours }) });
+      if (!isCurrent()) return;
+      for (const key of ["title", "objectives", "activities", "assessment", "notes"]) el(fields[key]).value = result.suggestion[key];
+      el("aiSuggestionStatus").textContent = "AI提案を反映しました。内容を確認・修正して「保存」を押してください。";
+    } catch (error) { if (isCurrent()) el("aiSuggestionStatus").textContent = error.message || "AI提案に失敗しました。"; }
+    finally {
+      if (isCurrent()) {
+        suggesting = false;
+        suggest.disabled = save.disabled = false;
+        suggest.textContent = "AI提案";
+        for (const field of Object.values(fields)) el(field).disabled = false;
+        for (const item of unitButtons) item.button.disabled = false;
+      }
+    }
+  };
   el("lessonPlanForm").onsubmit = async event => {
     event.preventDefault();
     if (!isCurrent() || save.disabled || !el("lessonPlanForm").reportValidity()) return;
