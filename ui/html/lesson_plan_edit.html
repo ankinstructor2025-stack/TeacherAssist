@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>指導案編集 | TeacherAssist</title>
-  <link rel="stylesheet" href="../css/theme.css?v=20261108-13">
+  <link rel="stylesheet" href="../css/theme.css?v=20261108-18">
   <script type="module" src="../js/lesson-plan-edit.js?v=20261108-16"></script>
 </head>
 <body>
@@ -19,7 +19,7 @@
       <div id="contentsList" class="contents-list"></div>
       <p id="contentsStatus" role="status"></p>
     </aside>
-    <form id="lessonPlanForm" class="lesson-fields">
+    <form id="lessonPlanForm" class="lesson-fields lesson-plan-grid">
       <div class="lesson-edit-actions"><p id="planCreatedAt" class="lesson-created-at" role="status">未作成</p><a class="btn" href="profile_prompt_edit.html">プロンプト設定</a><button id="suggestLessonButton" class="btn btn-primary" type="button" disabled>AI提案</button></div>
       <p id="aiSuggestionStatus" role="status" aria-live="polite"></p>
       <div><label for="planTitle">指導案名</label><input id="planTitle" required maxlength="150"></div>
@@ -29,19 +29,23 @@
       </div>
       <div><label for="objectives">本時の目標</label><textarea id="objectives" rows="4" maxlength="10000"></textarea></div>
       <div><label for="activities">授業の展開（時間配分・教師の発問・児童の活動）</label><textarea id="activities" rows="16" maxlength="20000"></textarea></div>
-      <section class="lesson-question-panel" aria-labelledby="teacherScriptTitle">
+      <div class="lesson-dialogue-scroll" role="region" aria-label="先生の発言案と児童の想定質問" tabindex="0">
+      <div class="lesson-flow-columns">
+      <section class="lesson-question-panel lesson-flow-panel" aria-labelledby="teacherScriptTitle">
         <h2 id="teacherScriptTitle">先生の発言案（時系列）</h2>
         <p>授業の流れに沿って、時間・場面・先生の言葉を順に並べます。授業に合わせて修正できます。</p>
         <label for="teacherScript">時間・場面・先生の発言</label>
         <textarea id="teacherScript" rows="18" maxlength="20000" placeholder="時間：0〜5分&#10;場面：導入&#10;先生：前の時間に学んだことを思い出しましょう。"></textarea>
       </section>
-      <section class="lesson-question-panel" aria-labelledby="studentQuestionsTitle">
+      <section class="lesson-question-panel lesson-flow-panel" aria-labelledby="studentQuestionsTitle">
         <h2 id="studentQuestionsTitle">児童の想定質問・返答例</h2>
         <p>授業中に出そうな疑問や誤解と、それに対する教師の返答・確かめる問いを整理します。</p>
         <label for="studentQuestions">場面・児童の質問・教師の返答・確かめる問い</label>
         <textarea id="studentQuestions" rows="12" maxlength="10000"></textarea>
         <details><summary>想定質問の参考資料</summary><p id="questionSourcesStatus" role="status"></p><div id="questionSources"></div></details>
       </section>
+      </div>
+      </div>
       <div><label for="assessment">評価の観点・方法</label><textarea id="assessment" rows="4" maxlength="10000"></textarea></div>
       <div><label for="notes">教材・準備・備考</label><textarea id="notes" rows="4" maxlength="10000"></textarea></div>
     </form>

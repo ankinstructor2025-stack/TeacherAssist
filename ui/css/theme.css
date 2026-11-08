@@ -150,6 +150,22 @@ select:disabled { opacity: .6; }
 .row-actions .btn { margin: 3px; padding: 7px 12px; }
 textarea { display: block; width: 100%; border: 1px solid var(--input-border); border-radius: 10px; padding: 12px; font: inherit; background: #fff; color: #111827; color-scheme: light; resize: vertical; }
 .lesson-fields { display: grid; gap: 20px; }
+.lesson-plan-grid { grid-template-columns: repeat(2,minmax(0,1fr)); min-width: 0; align-items: start; }
+.lesson-plan-grid > * { min-width: 0; }
+.lesson-plan-grid > .lesson-edit-actions,
+.lesson-plan-grid > #aiSuggestionStatus,
+.lesson-plan-grid > .lesson-dialogue-scroll { grid-column: 1 / -1; }
+.lesson-plan-grid > .form-grid { margin: 0; }
+.lesson-plan-grid #objectives,
+.lesson-plan-grid #activities { min-height: 360px; }
+.lesson-dialogue-scroll { overflow-x: auto; }
+.lesson-flow-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; align-items: stretch; }
+.lesson-dialogue-scroll .lesson-flow-columns { min-width: 640px; }
+.lesson-flow-panel { min-width: 0; display: flex; flex-direction: column; }
+.lesson-flow-panel textarea { flex: 1; min-height: 560px; }
+@media(max-width:1000px) {
+  .lesson-flow-panel textarea { min-height: 360px; }
+}
 .homework-levels { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
 .homework-level { padding: 16px; border: 1px solid var(--card-border); border-radius: 12px; min-width: 0; }
 .homework-level > p { color: #a9b6d4; font-size: 13px; }
