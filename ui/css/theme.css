@@ -165,6 +165,10 @@ textarea { display: block; width: 100%; border: 1px solid var(--input-border); b
 .lesson-unit-date { color: #a9b6d4; font-size: 12px; }
 .lesson-created-at { margin: 0; color: #a9b6d4; }
 .lesson-edit-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.lesson-edit-actions .lesson-created-at { margin-right: auto; }
+.prompt-common-choice { display: flex; align-items: center; gap: 10px; }
+.prompt-common-choice input { width: auto; }
+.fixed-prompt-rules { white-space: pre-wrap; color: #a9b6d4; }
 #aiSuggestionStatus { margin: 0; }
 #aiSuggestionStatus:empty { display: none; }
 @media(max-width:800px) {

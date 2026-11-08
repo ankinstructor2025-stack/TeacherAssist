@@ -12,6 +12,8 @@ from app.services.lesson_suggestions import suggest_lesson
 
 class LessonSuggestionTests(unittest.TestCase):
     def setUp(self):
+        self.prompt_patch = patch("app.services.prompts.user_prompt", return_value={"common_prompt_text": "共通方針", "prompt_text": "追加方針"})
+        self.prompt_patch.start()
         self.client = TestClient(app)
         self.user = {"uid": "teacher", "email": "teacher@example.com"}
         app.dependency_overrides[current_user] = lambda: self.user
@@ -19,6 +21,7 @@ class LessonSuggestionTests(unittest.TestCase):
         self.result = {"title": "整数と小数", "objectives": "目標", "activities": "導入・展開・まとめ", "assessment": "評価", "notes": "準備"}
 
     def tearDown(self):
+        self.prompt_patch.stop()
         app.dependency_overrides.clear()
 
     def test_route_uses_own_assignment_and_only_sends_teaching_context(self):

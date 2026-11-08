@@ -7,7 +7,7 @@ from fastapi import HTTPException
 TEST_MESSAGE = "接続テストです。OKとだけ返答してください。"
 
 
-def generate_text(provider, model, api_key, message, max_output_tokens=512):
+def generate_text(provider, model, api_key, message, max_output_tokens=512, output_schema=None):
     if provider == "openai":
         url = "https://api.openai.com/v1/responses"
         headers = {"Authorization": f"Bearer {api_key}"}
@@ -25,6 +25,10 @@ def generate_text(provider, model, api_key, message, max_output_tokens=512):
         body = {"model": model, "messages": [{"role": "user", "content": message}], "max_tokens": max_output_tokens}
     else:
         raise HTTPException(422, "対応していないAIの種類です。")
+    if output_schema and provider == "openai":
+        body["text"] = {"format": {"type": "json_schema", "name": "lesson_suggestion", "schema": output_schema, "strict": True}}
+    elif output_schema and provider == "gemini":
+        body["generationConfig"].update({"responseMimeType": "application/json", "responseJsonSchema": output_schema})
     try:
         # Do not follow redirects carrying credentials or return upstream error bodies.
         response = httpx.post(url, headers=headers, json=body, timeout=55 if max_output_tokens > 512 else 45, follow_redirects=False)
