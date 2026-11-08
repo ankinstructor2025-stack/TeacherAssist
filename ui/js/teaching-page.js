@@ -4,7 +4,7 @@ import { loadSession, showError } from "./common.js";
 import { API_BASE_URL } from "./config.js";
 import { mountSchoolToolbar } from "./school-toolbar.js?v=20261108-5";
 
-export async function startTeachingPage(title, toolbar, onReady) {
+export async function startTeachingPage(title, toolbar, onReady, endpoint = "/teaching-assignments") {
   const el = id => document.getElementById(id);
   const updateToolbar = mountSchoolToolbar(title, toolbar);
   try {
@@ -24,7 +24,7 @@ export async function startTeachingPage(title, toolbar, onReady) {
         if (!response.ok) {
           const message = response.status === 404 && path === "/teaching-assignments"
             ? "担当科目のAPIが見つかりません。公開更新が完了してから再読み込みしてください。"
-            : typeof data.detail === "string" ? data.detail : "担当科目を取得・保存できませんでした。";
+            : typeof data.detail === "string" ? data.detail : `${title}を取得・保存できませんでした。`;
           throw Object.assign(new Error(message), { status: response.status });
         }
         return data;
@@ -37,7 +37,7 @@ export async function startTeachingPage(title, toolbar, onReady) {
         if (!isCurrent()) return;
         updateToolbar(profile);
         profileLoaded = true;
-        const data = await request("/teaching-assignments");
+        const data = await request(endpoint);
         if (!isCurrent()) return;
         updateToolbar(data.profile);
         await onReady(data, request, isCurrent);
@@ -47,7 +47,7 @@ export async function startTeachingPage(title, toolbar, onReady) {
       } catch (error) {
         if (!isCurrent()) return;
         if (!profileLoaded) updateToolbar(null, "取得できません");
-        el("status").textContent = "担当科目を表示できませんでした。";
+        el("status").textContent = `${title}を表示できませんでした。`;
         showError(error);
         if (error.status === 401 || error.status === 403) await signOut(auth).catch(() => {});
       }

@@ -1,4 +1,4 @@
-import { startTeachingPage } from "./teaching-page.js?v=20261108-5";
+import { startTeachingPage } from "./teaching-page.js?v=20261108-6";
 import { showError } from "./common.js";
 
 const el = id => document.getElementById(id);
@@ -15,7 +15,7 @@ for (const subject of ["国語", "書写", "社会", "地図", "算数", "理科
   el("subject").add(new Option(subject, subject));
 }
 
-await startTeachingPage(id ? "担当科目編集" : "担当科目登録", { backHref: "teaching_subjects.html", backLabel: "一覧に戻る", buttons: [save] }, async (data, request, isCurrent) => {
+await startTeachingPage(id ? "担当科目修正" : "担当科目登録", { backHref: "teaching_subjects.html", backLabel: "一覧に戻る", buttons: [save] }, async (data, request, isCurrent) => {
   const hasSchool = Boolean(data.profile.school_code);
   el("profileNotice").hidden = hasSchool;
   el("grade").disabled = el("subject").disabled = !hasSchool;

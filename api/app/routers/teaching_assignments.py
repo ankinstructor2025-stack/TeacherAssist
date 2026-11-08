@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 from ..auth import current_user
 from ..firebase import database
-from ..services.teaching_assignments import assignment_rows, save_assignment
+from ..services.teaching_assignments import assignment_rows, save_assignment, remove_assignment
 from .profile import profile_document
 from .teaching_subjects import teaching_subjects
 
@@ -46,3 +46,10 @@ def create_assignment(body: AssignmentRequest, response: Response, user: Annotat
 @router.put("/api/teaching-assignments/{assignment_id}")
 def update_assignment(assignment_id: str, body: AssignmentRequest, response: Response, user: Annotated[dict, Depends(current_user)]):
     return persist(body, response, user, assignment_id)
+
+
+@router.delete("/api/teaching-assignments/{assignment_id}")
+def delete_assignment(assignment_id: str, response: Response, user: Annotated[dict, Depends(current_user)]):
+    response.headers["Cache-Control"] = "no-store"
+    record = profile_document(user)
+    return remove_assignment(database().transaction(), record.reference, user["email"], assignment_id)

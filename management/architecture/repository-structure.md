@@ -12,8 +12,8 @@ qaplainを構成の参考とし、独立したTeacherAssist専用Firebaseプロ�
 - `api/app/firebase.py`: Firebaseの起動・終了、Firestore接続。
 - `api/app/auth.py`: トークン検証、利用登録と管理者権限の確認。
 - `api/app/identity.py`: メールアドレスの正規化と文書キー。
-- `api/app/routers/`: session、system_users、profile、schools、teaching_subjects の機能別API。
-- `api/app/services/`: 学校一覧の読み込み、公開採択情報と所属校・使用年度の照合。
+- `api/app/routers/`: session、system_users、profile、schools、teaching_subjects、teaching_assignments、lesson_plans の機能別API。
+- `api/app/services/`: 学校一覧の読み込み、公開採択情報と所属校・使用年度の照合、担当科目・指導案の保存、教科書目次の照合。
 - `api/app/data/`: 学校一覧、出典と適用期間を持つ公開採択情報。
 
 機能を追加するときは対応するルーター・サービスに配置し、main.pyには業務処理を追加しない。
